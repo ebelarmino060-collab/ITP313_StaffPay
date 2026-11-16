@@ -1,0 +1,70 @@
+<div class="page-header no-print">
+  <a href="{{backUrl}}" class="btn btn-secondary">{{icon "arrow-left" 16}}<span>Back</span></a>
+  <div class="page-actions">
+    <button type="button" class="btn btn-secondary" data-print>{{icon "printer" 16}}<span>Print</span></button>
+    <a href="{{pdfUrl}}" class="btn btn-primary">{{icon "download" 16}}<span>Download PDF</span></a>
+  </div>
+</div>
+
+<article class="payslip">
+  <header class="payslip-header">
+    {{#if hotelInfo.logoUrl}}<img src="{{hotelInfo.logoUrl}}" alt="" class="payslip-logo">{{else}}<span class="brand-mark large">S</span>{{/if}}
+    <div>
+      <h2>{{hotelInfo.name}}</h2>
+      <p>{{hotelInfo.address}}</p>
+      <p>{{hotelInfo.contact}}{{#if hotelInfo.email}} · {{hotelInfo.email}}{{/if}}</p>
+    </div>
+    <div class="payslip-title">
+      <strong>PAYSLIP</strong>
+      <span>{{default slip.payslip.payslip_no slip.payroll.reference}}</span>
+      {{#if (or (eq slip.payroll.status "paid") (eq slip.payslip.payment_status "paid"))}}{{badge label="PAID" tone="success"}}{{else if slip.payroll.is_released}}{{badge label="UNPAID" tone="warning"}}{{else}}{{badge label="DRAFT – not final" tone="muted"}}{{/if}}
+    </div>
+  </header>
+
+  <section class="payslip-info">
+    <div><span>Employee</span><strong>{{slip.employee.full_name}}</strong></div>
+    <div><span>Employee ID</span><strong>{{slip.employee.employee_code}}</strong></div>
+    <div><span>Department</span><strong>{{default slip.employee.department.name "—"}}</strong></div>
+    <div><span>Position</span><strong>{{default slip.employee.position.title "—"}}</strong></div>
+    <div><span>Payroll Period</span><strong>{{date slip.payroll.period_start}} – {{date slip.payroll.period_end}}</strong></div>
+    <div><span>Pay Date</span><strong>{{date slip.payroll.pay_date}}</strong></div>
+    <div><span>Monthly Basic</span><strong>{{money slip.monthly_salary}}</strong></div>
+    <div><span>Daily / Hourly Rate</span><strong>{{money slip.daily_rate}} / {{money slip.hourly_rate}}</strong></div>
+  </section>
+
+  <section class="payslip-attendance">
+    <div><span>Scheduled Days</span><strong>{{slip.scheduled_days}}</strong></div>
+    <div><span>Days Worked</span><strong>{{slip.days_worked}}</strong></div>
+    <div><span>Absence Days</span><strong>{{slip.days_absent}}</strong></div>
+    <div><span>Paid Leave</span><strong>{{slip.paid_leave_days}}</strong></div>
+    <div><span>Late (mins)</span><strong>{{slip.late_minutes}}</strong></div>
+    <div><span>Undertime (mins)</span><strong>{{slip.undertime_minutes}}</strong></div>
+    <div><span>Overtime (hrs)</span><strong>{{num slip.overtime_hours 2}}</strong></div>
+  </section>
+
+  <section class="payslip-columns">
+    <table>
+      <thead><tr><th>Earnings</th><th class="text-right">Amount</th></tr></thead>
+      <tbody>{{#each slip.earnings}}<tr><td>{{label}}{{#if quantity}}<br><small class="text-muted">{{quantity}}</small>{{/if}}</td><td class="text-right">{{money amount}}</td></tr>{{/each}}</tbody>
+      <tfoot><tr><td>Gross Salary</td><td class="text-right">{{money slip.gross_salary}}</td></tr></tfoot>
+    </table>
+    <table>
+      <thead><tr><th>Deductions</th><th class="text-right">Amount</th></tr></thead>
+      <tbody>{{#each slip.deductionLines}}<tr><td>{{label}}{{#if quantity}}<br><small class="text-muted">{{quantity}}</small>{{/if}}</td><td class="text-right">{{money amount}}</td></tr>{{else}}<tr><td colspan="2" class="text-muted">No deductions</td></tr>{{/each}}</tbody>
+      <tfoot><tr><td>Total Deductions</td><td class="text-right">{{money slip.total_deductions}}</td></tr></tfoot>
+    </table>
+  </section>
+
+  <section class="payslip-net">
+    <div><span>NET SALARY</span><small>Gross {{money slip.gross_salary}} − Deductions {{money slip.total_deductions}}</small></div>
+    <strong>{{money slip.net_salary}}</strong>
+  </section>
+
+  {{#if slip.adjustment_notes}}<p class="payslip-notes"><strong>Notes:</strong> {{slip.adjustment_notes}}</p>{{/if}}
+
+  <footer class="payslip-sign">
+    <div><span class="sign-line"></span>Prepared by (HR / Payroll)</div>
+    <div><span class="sign-line"></span>Received by ({{slip.employee.full_name}})</div>
+  </footer>
+  <p class="payslip-foot">This is a system-generated payslip from StaffPay.</p>
+</article>

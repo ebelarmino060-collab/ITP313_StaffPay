@@ -1,0 +1,53 @@
+{{> payrollNav}}
+
+<div class="card">
+  {{#if selected}}
+  <form class="filter-bar" method="get" action="/payslips" data-autosubmit>
+    <select class="input" name="payroll_id" style="min-width:340px">{{options periods selected.id}}</select>
+    <div class="search-input">{{icon "search" 16}}<input class="input" type="search" name="search" value="{{filters.search}}" placeholder="Search employee…"></div>
+    <div class="filter-actions">
+      <a href="/payroll/{{selected.id}}" class="btn btn-secondary">{{icon "wallet" 16}}<span>Open payroll</span></a>
+      <a href="/payslips/zip/{{selected.id}}" class="btn btn-primary">{{icon "download" 16}}<span>Download all payslips (ZIP)</span></a>
+    </div>
+  </form>
+
+  <div class="summary-pills">
+    <span class="summary-date">{{icon "receipt" 16}} {{selected.reference}} · {{date selected.period_start}} – {{date selected.period_end}} · Pay date {{date selected.pay_date}}</span>
+    <span class="summary-pill tone-navy"><strong>{{len records}}</strong> payslip(s)</span>
+    <span class="summary-pill tone-blue"><strong>{{money totals.gross}}</strong> gross</span>
+    <span class="summary-pill tone-success"><strong>{{money totals.net}}</strong> net</span>
+    {{badge selected.status "payroll"}}
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Employee ID</th><th>Employee</th><th>Department</th><th>Payslip No.</th><th class="text-right">Absences</th><th class="text-right">OT hrs</th><th class="text-right">Gross</th><th class="text-right">Deductions</th><th class="text-right">Net Pay</th><th>Payment</th><th class="text-right">Downloads</th><th></th></tr></thead>
+      <tbody>
+        {{#each records}}
+        <tr>
+          <td><strong>{{employee.employee_code}}</strong></td>
+          <td>{{employee.full_name}}<br><small class="text-muted">{{employee.position.title}}</small></td>
+          <td>{{default employee.department.name "—"}}</td>
+          <td class="small">{{default payslip.payslip_no "—"}}</td>
+          <td class="text-right">{{days_absent}}</td>
+          <td class="text-right">{{overtime_hours}}</td>
+          <td class="text-right">{{money gross_salary}}</td>
+          <td class="text-right text-danger">{{money total_deductions}}</td>
+          <td class="text-right"><strong class="text-navy">{{money net_salary}}</strong></td>
+          <td>{{#if (eq payslip.payment_status "paid")}}{{badge label="Paid" tone="success"}}{{else}}{{badge label="Unpaid" tone="warning"}}{{/if}}</td>
+          <td class="text-right">{{default payslip.download_count 0}}</td>
+          <td class="text-right"><div class="row-actions">
+            <a href="/payslips/{{id}}" class="btn btn-ghost btn-sm btn-icon" title="View / print">{{icon "eye" 16}}</a>
+            <a href="/payslips/{{id}}/pdf" class="btn btn-ghost btn-sm btn-icon" title="Download PDF">{{icon "download" 16}}</a>
+          </div></td>
+        </tr>
+        {{else}}
+        <tr><td colspan="12" class="table-empty">No payslips match your search.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{else}}
+  <div class="state-box">{{icon "receipt" 30}}<h4>No finalized payroll yet</h4><p>Payslips are issued when a payroll period is calculated and finalized.</p><a href="/payroll" class="btn btn-primary">Go to Payroll</a></div>
+  {{/if}}
+</div>

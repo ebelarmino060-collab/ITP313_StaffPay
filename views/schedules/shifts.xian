@@ -1,0 +1,38 @@
+{{> scheduleNav}}
+
+<div class="toolbar-right">
+  <button type="button" class="btn btn-primary" data-modal="#shift-modal" data-title="Add Shift" data-action="/schedules/shifts">{{icon "plus" 16}}<span>Add Shift</span></button>
+</div>
+
+<div class="shift-grid">
+  {{#each shifts}}
+  <div class="shift-card" style="border-top-color: {{color}}">
+    <div class="shift-card-head">
+      <h3>{{name}}</h3>
+      <div class="row-actions">
+        <button type="button" class="btn btn-ghost btn-sm btn-icon" title="Edit" data-modal="#shift-modal" data-title="Edit Shift" data-action="/schedules/shifts/{{id}}/update" data-record="{{json form}}">{{icon "pencil" 16}}</button>
+        {{> deleteButton action=(concat "/schedules/shifts/" id "/delete") message=(concat "Delete the " name "? Shifts used in schedules cannot be deleted.")}}
+      </div>
+    </div>
+    <div class="shift-time">{{icon "clock" 18}} {{clock start_time}} – {{clock end_time}}</div>
+    <p class="text-muted">{{#if description}}{{description}}{{else if is_overnight}}Overnight shift{{else}}Day shift{{/if}}</p>
+    <div class="shift-meta">
+      <span>{{hours duration_minutes}} total{{#if break_minutes}} · {{break_minutes}}m break{{/if}}</span>
+      <span>{{icon "users" 14}} {{active_assignments}} assigned</span>
+    </div>
+  </div>
+  {{else}}
+  <div class="state-box">{{icon "inbox" 30}}<h4>No shifts yet</h4></div>
+  {{/each}}
+</div>
+
+{{#> modal id="shift-modal" title="Add Shift" action="/schedules/shifts"}}
+<div class="form-grid">
+  <label class="field span-2"><span class="field-label">Shift name <em>*</em></span><input class="input" name="name" required maxlength="60" placeholder="e.g. Morning Shift"></label>
+  <label class="field"><span class="field-label">Time in <em>*</em></span><input class="input" type="time" name="start_time" value="06:00" required></label>
+  <label class="field"><span class="field-label">Time out <em>*</em></span><input class="input" type="time" name="end_time" value="14:00" required><span class="field-hint">Earlier than time in = overnight shift</span></label>
+  <label class="field"><span class="field-label">Unpaid break (minutes)</span><input class="input" type="number" name="break_minutes" min="0" max="180" value="0"></label>
+  <label class="field"><span class="field-label">Color</span><input class="input" type="color" name="color" value="#1e3a5f"></label>
+  <label class="field span-2"><span class="field-label">Description</span><textarea class="input" name="description" rows="2"></textarea></label>
+</div>
+{{/modal}}

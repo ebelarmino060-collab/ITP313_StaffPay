@@ -1,0 +1,59 @@
+<div class="page-header">
+  <div>
+    <h1>My Leave Requests</h1>
+    <p class="text-muted">File leave requests and track their status</p>
+  </div>
+  <div class="page-actions">
+    <button type="button" class="btn btn-primary" data-modal="#leave-modal">{{icon "plus" 16}}<span>File Leave Request</span></button>
+  </div>
+</div>
+
+<div class="balance-row balance-row-lg">
+  {{#each balances}}<div class="balance-pill"><span>{{leaveType leave_type}}</span><strong>{{remaining}}</strong><small>{{used}} used of {{allocated}} days ({{year}})</small></div>{{/each}}
+  <div class="balance-pill muted"><span>Unpaid Leave</span><strong>∞</strong><small>Deducted from salary</small></div>
+</div>
+
+<section class="card">
+  <div class="card-header">
+    <h3>Leave History</h3>
+    <form method="get" action="/my/leaves" data-autosubmit><select class="input" name="status">{{options opts.requestStatus filters.status placeholder="All statuses"}}</select></form>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Leave Type</th><th>Dates</th><th class="text-right">Days</th><th>Reason</th><th>Status</th><th>Remarks</th><th>Filed</th><th></th></tr></thead>
+      <tbody>
+        {{#each leaves}}
+        <tr>
+          <td>{{leaveType leave_type}}</td>
+          <td>{{date start_date "short"}} – {{date end_date}}</td>
+          <td class="text-right">{{days}}</td>
+          <td class="cell-wrap">{{reason}}</td>
+          <td>{{badge status "request"}}</td>
+          <td class="cell-wrap">{{#if remarks}}{{remarks}}<br><small class="text-muted">— {{reviewer.name}}</small>{{else}}—{{/if}}</td>
+          <td><small>{{datetime createdAt}}</small></td>
+          <td class="text-right">
+            {{#if (eq status "pending")}}
+            <form method="post" action="/my/leaves/{{id}}/cancel" class="inline-form" data-confirm="Cancel your {{leaveType leave_type}} request for {{date start_date}} – {{date end_date}}?" data-confirm-label="Cancel request">
+              {{> csrf}}<button type="submit" class="btn btn-ghost btn-sm">{{icon "x" 14}}<span>Cancel</span></button>
+            </form>
+            {{/if}}
+          </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="8" class="table-empty">You have not filed any leave requests.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{> pagination}}
+</section>
+
+{{#> modal id="leave-modal" title="File Leave Request" action="/my/leaves" submit="Submit request"}}
+<div class="form-grid" data-leave-preview>
+  <label class="field span-2"><span class="field-label">Leave type <em>*</em></span><select class="input" name="leave_type" required>{{options @root.opts.leaveTypes "vacation"}}</select></label>
+  <label class="field"><span class="field-label">Start date <em>*</em></span><input class="input" type="date" name="start_date" required></label>
+  <label class="field"><span class="field-label">End date <em>*</em></span><input class="input" type="date" name="end_date" required></label>
+  <div class="span-2"><div data-leave-preview-output class="leave-preview"></div></div>
+  <label class="field span-2"><span class="field-label">Reason <em>*</em></span><textarea class="input" name="reason" rows="3" required></textarea></label>
+</div>
+{{/modal}}

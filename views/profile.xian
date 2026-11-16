@@ -1,0 +1,77 @@
+<div class="page-header">
+  <div>
+    <h1>My Profile</h1>
+    <p class="text-muted">Your personal and employment information</p>
+  </div>
+</div>
+
+<div class="grid grid-3">
+  <section class="card profile-card">
+    <div class="profile-head">
+      {{avatar me.name employee.photo_url 96}}
+      <h2>{{me.name}}</h2>
+      <p class="text-muted">{{default employee.position.title me.roleLabel}}</p>
+      {{badge label=me.roleLabel tone="navy"}}
+    </div>
+    {{#if employee}}
+    <form method="post" action="/profile/photo" enctype="multipart/form-data" class="stack" style="margin-bottom:16px">
+      {{> csrf}}
+      <input type="file" name="photo" accept="image/*" class="input" required>
+      <button type="submit" class="btn btn-secondary btn-sm">{{icon "camera" 14}}<span>Update photo</span></button>
+    </form>
+    {{/if}}
+    <dl class="info-grid">
+      <div><dt>Email</dt><dd>{{me.email}}</dd></div>
+      <div><dt>Employee ID</dt><dd>{{default employee.employee_code "—"}}</dd></div>
+      <div><dt>Last sign in</dt><dd>{{datetime me.last_login_at}}</dd></div>
+    </dl>
+  </section>
+
+  <div class="span-2 stack">
+    {{#if employee}}
+    <section class="card">
+      <div class="card-header"><h3>Employment Details</h3></div>
+      <dl class="info-grid">
+        <div><dt>Department</dt><dd>{{default employee.department.name "—"}}</dd></div>
+        <div><dt>Position</dt><dd>{{default employee.position.title "—"}}</dd></div>
+        <div><dt>Employment status</dt><dd>{{badge employee.employment_status "employment"}}</dd></div>
+        <div><dt>Employment type</dt><dd>{{employmentType employee.employment_type}}</dd></div>
+        <div><dt>Date hired</dt><dd>{{date employee.date_hired}}</dd></div>
+        <div><dt>Basic salary (monthly)</dt><dd>{{money employee.basic_salary}}</dd></div>
+        <div><dt>Gender</dt><dd>{{default (titleCase employee.gender) "—"}}</dd></div>
+        <div><dt>Birth date</dt><dd>{{date employee.birth_date}}</dd></div>
+        <div><dt>Current shift</dt><dd>{{#if schedule}}{{schedule.shift.label}}{{else}}Not assigned{{/if}}</dd></div>
+        <div><dt>Working days</dt><dd>{{#if schedule}}{{weekdays schedule.working_days}}{{else}}—{{/if}}</dd></div>
+      </dl>
+      <div class="balance-row">
+        {{#each balances}}<div class="balance-pill"><span>{{leaveType leave_type}}</span><strong>{{remaining}}</strong><small>of {{allocated}} days left</small></div>{{/each}}
+      </div>
+    </section>
+    {{/if}}
+
+    <section class="card">
+      <div class="card-header"><div><h3>Contact Information</h3>{{#if employee}}<p class="text-muted">You can update your contact number and address. Your name is managed by HR.</p>{{/if}}</div></div>
+      <form method="post" action="/profile" class="form-grid" id="profile-form">
+        {{> csrf}}
+        {{#if employee}}
+        <label class="field"><span class="field-label">Contact number</span><input class="input" name="contact_number" value="{{employee.contact_number}}"></label>
+        <label class="field span-2"><span class="field-label">Home address</span><textarea class="input" name="address" rows="2">{{employee.address}}</textarea></label>
+        {{else}}
+        <label class="field"><span class="field-label">Display name</span><input class="input" name="name" value="{{me.name}}" required></label>
+        {{/if}}
+        <div class="form-actions span-2"><button type="submit" class="btn btn-primary">{{icon "save" 16}}<span>Save changes</span></button></div>
+      </form>
+    </section>
+
+    <section class="card" id="password">
+      <div class="card-header"><h3>Change Password</h3></div>
+      <form method="post" action="/profile/password" class="form-grid" id="password-form">
+        {{> csrf}}
+        <label class="field span-2"><span class="field-label">Current password</span><input class="input" type="password" name="current_password" autocomplete="current-password" required></label>
+        <label class="field"><span class="field-label">New password</span><input class="input" type="password" name="password" autocomplete="new-password" minlength="8" required><span class="field-hint">At least 8 characters</span></label>
+        <label class="field"><span class="field-label">Confirm new password</span><input class="input" type="password" name="password_confirmation" autocomplete="new-password" required></label>
+        <div class="form-actions span-2"><button type="submit" class="btn btn-primary">{{icon "key-round" 16}}<span>Update password</span></button></div>
+      </form>
+    </section>
+  </div>
+</div>

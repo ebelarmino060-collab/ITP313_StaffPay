@@ -1,0 +1,65 @@
+<div class="page-header">
+  <div>
+    <h1>Employees</h1>
+    <p class="text-muted">{{pager.total}} employee record(s)</p>
+  </div>
+  {{#if me.isAdmin}}
+  <div class="page-actions">
+    <button type="button" class="btn btn-primary" data-modal="#employee-modal" data-title="Add New Employee" data-action="/employees">{{icon "plus" 16}}<span>Add Employee</span></button>
+  </div>
+  {{/if}}
+</div>
+
+<div class="card">
+  <form class="filter-bar" method="get" action="/employees" data-autosubmit>
+    <div class="search-input">{{icon "search" 16}}<input class="input" type="search" name="search" value="{{filters.search}}" placeholder="Search name, ID or email…"></div>
+    <select class="input" name="department_id">{{options departments filters.department_id placeholder="All departments" value="id" label="name"}}</select>
+    <select class="input" name="employment_status">{{options opts.employmentStatus filters.employment_status placeholder="All statuses"}}</select>
+    <select class="input" name="employment_type">{{options opts.employmentTypes filters.employment_type placeholder="All types"}}</select>
+    <select class="input" name="sort">
+      <option value="name" {{selected filters.sort "name"}}>Sort: Name</option>
+      <option value="code" {{selected filters.sort "code"}}>Sort: Employee ID</option>
+      <option value="hired" {{selected filters.sort "hired"}}>Sort: Newest hire</option>
+      <option value="salary" {{selected filters.sort "salary"}}>Sort: Highest salary</option>
+    </select>
+  </form>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Employee</th><th>Department</th><th>Position</th><th>Type</th><th>Status</th><th>Date Hired</th><th class="text-right">Basic / Daily / Hourly</th><th>Account</th><th></th></tr></thead>
+      <tbody>
+        {{#each employees}}
+        <tr>
+          <td><a href="/employees/{{id}}" class="person-cell">{{avatar full_name photo_url 34}}<div><strong>{{full_name}}</strong><span class="text-muted">{{employee_code}}{{#if email}} · {{email}}{{/if}}</span></div></a></td>
+          <td>{{default department.name "—"}}</td>
+          <td>{{default position.title "—"}}</td>
+          <td>{{employmentType employment_type}}</td>
+          <td>{{badge employment_status "employment"}}</td>
+          <td>{{date date_hired}}</td>
+          <td class="text-right">{{money basic_salary}}<br><small class="text-muted">{{money rates.daily}}/day · {{money rates.hourly}}/hr</small></td>
+          <td>{{#if user}}{{#if user.is_active}}{{badge label="Active" tone="success"}}{{else}}{{badge label="Deactivated" tone="muted"}}{{/if}}{{else}}<span class="text-muted small">No login</span>{{/if}}</td>
+          <td class="text-right">
+            <div class="row-actions">
+              <a href="/employees/{{id}}" class="btn btn-ghost btn-sm btn-icon" title="View">{{icon "eye" 16}}</a>
+              {{#if @root.me.isAdmin}}
+              {{#if user}}
+              <form method="post" action="/employees/{{id}}/account" class="inline-form" data-confirm="{{#if user.is_active}}Deactivate the login account of {{full_name}}? They will no longer be able to sign in. Records are kept.{{else}}Reactivate the login account of {{full_name}}?{{/if}}" data-confirm-title="{{#if user.is_active}}Deactivate account?{{else}}Reactivate account?{{/if}}" data-confirm-label="{{#if user.is_active}}Deactivate{{else}}Reactivate{{/if}}" data-confirm-tone="{{#if user.is_active}}danger{{else}}success{{/if}}">
+                {{> csrf}}<button type="submit" class="btn btn-ghost btn-sm btn-icon" title="{{#if user.is_active}}Deactivate account{{else}}Reactivate account{{/if}}">{{#if user.is_active}}{{icon "lock" 16}}{{else}}{{icon "key-round" 16}}{{/if}}</button>
+              </form>
+              {{/if}}
+              <button type="button" class="btn btn-ghost btn-sm btn-icon" title="Edit" data-modal="#employee-modal" data-title="Edit {{full_name}}" data-subtitle="{{employee_code}}" data-action="/employees/{{id}}/update" data-record="{{json form}}">{{icon "pencil" 16}}</button>
+              {{> deleteButton action=(concat "/employees/" id "/delete") message=(concat "Permanently delete " full_name " with all attendance, leave and payroll history and their login account? To keep history, set the status to Resigned instead.") confirmTitle="Delete employee?" confirmLabel="Delete employee"}}
+              {{/if}}
+            </div>
+          </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="9" class="table-empty">{{icon "inbox" 28}}<div>No employees match your filters.</div></td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{> pagination}}
+</div>
+
+{{#if me.isAdmin}}{{> employeeForm}}{{/if}}

@@ -1,0 +1,126 @@
+<div class="page-header">
+  <div>
+    <h1>Payroll {{payroll.reference}}</h1>
+    <p class="text-muted">{{date payroll.period_start}} – {{date payroll.period_end}} · Pay date {{date payroll.pay_date}}</p>
+  </div>
+  <div class="page-actions">
+    <a href="/payroll" class="btn btn-secondary">{{icon "arrow-left" 16}}<span>Back</span></a>
+    {{#if editable}}
+      <button type="button" class="btn btn-secondary" data-modal="#payroll-modal" data-title="Edit Payroll Period" data-subtitle="Changing the dates clears the computed lines." data-action="/payroll/{{payroll.id}}/update" data-record="{{json form}}">{{icon "pencil" 16}}<span>Edit</span></button>
+      <form method="post" action="/payroll/{{payroll.id}}/calculate" class="inline-form" data-confirm="Absences up to today are recorded first, then every active employee is computed from attendance, approved overtime, holidays, night differential, allowances, deductions and government contributions. Manual adjustments are kept." data-confirm-title="{{#if (eq payroll.status "draft")}}Calculate payroll?{{else}}Recalculate payroll?{{/if}}" data-confirm-label="Calculate" data-confirm-tone="primary">
+        {{> csrf}}<button type="submit" class="btn btn-primary">{{icon "calculator" 16}}<span>{{#if (eq payroll.status "draft")}}Calculate{{else}}Recalculate{{/if}}</span></button>
+      </form>
+    {{/if}}
+    {{#if (eq payroll.status "calculated")}}
+      <form method="post" action="/payroll/{{payroll.id}}/approve" class="inline-form" data-confirm="Finalizing locks this payroll (and the attendance of its dates), issues a payslip to every employee and notifies them." data-confirm-title="Finalize payroll?" data-confirm-label="Finalize" data-confirm-tone="success">
+        {{> csrf}}<button type="submit" class="btn btn-success">{{icon "circle-check" 16}}<span>Approve &amp; Finalize</span></button>
+      </form>
+    {{/if}}
+    {{#if payroll.is_released}}
+      <a href="/payslips?payroll_id={{payroll.id}}" class="btn btn-secondary">{{icon "receipt" 16}}<span>Payslips</span></a>
+      <a href="/payslips/zip/{{payroll.id}}" class="btn btn-secondary">{{icon "download" 16}}<span>All payslips (ZIP)</span></a>
+    {{/if}}
+    {{#if (eq payroll.status "approved")}}
+      <form method="post" action="/payroll/{{payroll.id}}/mark-paid" class="inline-form" data-confirm="Confirm that salaries for this period have been released." data-confirm-title="Mark as paid?" data-confirm-label="Mark as paid" data-confirm-tone="primary">
+        {{> csrf}}<button type="submit" class="btn btn-primary">{{icon "banknote" 16}}<span>Mark as Paid</span></button>
+      </form>
+      {{#if me.isAdmin}}
+      <button type="button" class="btn btn-secondary" data-modal="#reopen-modal">{{icon "rotate-ccw" 16}}<span>Reopen</span></button>
+      {{/if}}
+    {{/if}}
+  </div>
+</div>
+
+<div class="stepper">
+  {{#each steps}}<div class="step {{#if done}}done{{/if}} {{#if current}}current{{/if}}"><span>{{this.num}}</span>{{label}}</div>{{/each}}
+  <div class="stepper-meta text-muted small">
+    {{#if payroll.creator}}Created by {{payroll.creator.name}}. {{/if}}
+    {{#if payroll.calculated_at}}Calculated {{datetime payroll.calculated_at}}. {{/if}}
+    {{#if payroll.approver}}Approved by {{payroll.approver.name}} {{datetime payroll.approved_at}}. {{/if}}
+    {{#if payroll.paid_at}}Paid {{datetime payroll.paid_at}}.{{/if}}
+  </div>
+</div>
+
+{{#if (eq payroll.status "draft")}}
+<div class="alert alert-info">This payroll has not been calculated yet. Import the attendance TXT files for <strong>{{date payroll.period_start}} – {{date payroll.period_end}}</strong>, then click <strong>Calculate</strong>: absences (scheduled days with no attendance, excluding approved leave, rest days and holidays) are deducted and approved overtime is paid automatically.</div>
+{{/if}}
+{{#if payroll.is_released}}
+<div class="alert alert-success">{{icon "lock" 14}} This payroll is <strong>finalized and locked</strong>. Attendance for these dates can no longer be imported or changed through payroll; corrections require an administrator to reopen it (recorded in the audit log).</div>
+{{/if}}
+{{#if unapprovedOvertime}}
+<div class="alert alert-warning">{{icon "timer" 14}} {{unapprovedOvertime}} overtime record(s) in this period are still <strong>pending</strong> approval and are not paid yet. <a href="/attendance/overtime?overtime_status=pending" class="link">Review overtime</a></div>
+{{/if}}
+
+<div class="stat-grid stat-grid-4">
+  <div class="stat-card"><div class="stat-icon tone-navy">{{icon "users" 22}}</div><div class="stat-content"><span class="stat-label">Employees</span><strong class="stat-value">{{payroll.employee_count}}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon tone-blue">{{icon "trending-up" 22}}</div><div class="stat-content"><span class="stat-label">Total Gross</span><strong class="stat-value">{{money payroll.total_gross}}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon tone-red">{{icon "receipt" 22}}</div><div class="stat-content"><span class="stat-label">Total Deductions</span><strong class="stat-value">{{money payroll.total_deductions}}</strong><span class="stat-hint">Gov. {{money totals.gov}} · Tax {{money totals.tax}}</span></div></div>
+  <div class="stat-card"><div class="stat-icon tone-green">{{icon "wallet" 22}}</div><div class="stat-content"><span class="stat-label">Total Net Pay</span><strong class="stat-value">{{money payroll.total_net}}</strong></div></div>
+</div>
+
+<section class="card">
+  <div class="card-header">
+    <div><h3>Employee Payroll Lines</h3><p class="text-muted">{{#if editable}}Use Adjust to add bonuses or extra deductions before approval.{{else}}Open a payslip for the full breakdown.{{/if}}</p></div>
+    <div class="card-actions">
+      <a href="/reports/export?type=payroll&from={{payroll.period_start}}&to={{payroll.period_end}}&format=pdf" class="btn btn-secondary btn-sm">{{icon "file-text" 14}}<span>PDF</span></a>
+      <a href="/reports/export?type=payroll&from={{payroll.period_start}}&to={{payroll.period_end}}&format=xlsx" class="btn btn-secondary btn-sm">{{icon "download" 14}}<span>Excel</span></a>
+    </div>
+  </div>
+  <form class="filter-bar" method="get" action="/payroll/{{payroll.id}}" data-autosubmit>
+    <div class="search-input">{{icon "search" 16}}<input class="input" type="search" name="search" value="{{filters.search}}" placeholder="Search employee…"></div>
+  </form>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Employee</th><th class="text-right">Worked / Absent</th><th class="text-right">Regular</th><th class="text-right">OT (hrs) / Pay</th><th class="text-right">Holiday + ND</th><th class="text-right">Allow. + Incent.</th><th class="text-right">Gross</th><th class="text-right">Absence Ded.</th><th class="text-right">All Deductions</th><th class="text-right">Net Pay</th><th></th></tr></thead>
+      <tbody>
+        {{#each details}}
+        <tr>
+          <td><div class="person-cell">{{avatar employee.full_name employee.photo_url 34}}<div><strong>{{employee.full_name}}</strong><span class="text-muted">{{employee.employee_code}} · {{employee.position.title}}</span></div></div></td>
+          <td class="text-right">{{days_worked}} / <span class="{{#if days_absent}}text-danger{{/if}}">{{days_absent}}</span></td>
+          <td class="text-right">{{money basic_salary}}</td>
+          <td class="text-right">{{overtime_hours}} h<br><small>{{money overtime_pay}}</small></td>
+          <td class="text-right">{{money (add holiday_pay night_differential)}}</td>
+          <td class="text-right">{{money (add (add allowances incentives) adjustment_additions)}}</td>
+          <td class="text-right"><strong>{{money gross_salary}}</strong></td>
+          <td class="text-right text-danger">{{money absence_deduction}}</td>
+          <td class="text-right text-danger">{{money total_deductions}}</td>
+          <td class="text-right"><strong class="text-navy">{{money net_salary}}</strong></td>
+          <td class="text-right"><div class="row-actions">
+            {{#if @root.editable}}<button type="button" class="btn btn-ghost btn-sm" data-modal="#adjust-modal" data-action="/payroll/details/{{id}}/update" data-subtitle="{{employee.full_name}} · current net {{money net_salary}}" data-record="{{json adjust}}">{{icon "pencil" 14}}<span>Adjust</span></button>{{/if}}
+            <a href="/payslips/{{id}}" class="btn btn-ghost btn-sm">{{icon "receipt" 14}}<span>Payslip</span></a>
+          </div></td>
+        </tr>
+        {{else}}
+        <tr><td colspan="11" class="table-empty">{{icon "inbox" 28}}<div>{{#if (eq payroll.status "draft")}}Not calculated yet.{{else}}No employees.{{/if}}</div></td></tr>
+        {{/each}}
+      </tbody>
+      {{#if details.length}}
+      <tfoot><tr>
+        <td><strong>Totals</strong></td><td></td>
+        <td class="text-right">{{money totals.basic}}</td><td class="text-right">{{money totals.ot}}</td><td class="text-right">{{money (add totals.holiday totals.nd)}}</td>
+        <td class="text-right">{{money totals.allow}}</td>
+        <td class="text-right"><strong>{{money payroll.total_gross}}</strong></td><td class="text-right">{{money totals.absence}}</td><td class="text-right">{{money payroll.total_deductions}}</td>
+        <td class="text-right"><strong>{{money payroll.total_net}}</strong></td><td></td>
+      </tr></tfoot>
+      {{/if}}
+    </table>
+  </div>
+</section>
+
+{{#if (and me.isAdmin (eq payroll.status "approved"))}}
+{{#> modal id="reopen-modal" title="Reopen finalized payroll" action=(concat "/payroll/" payroll.id "/reopen") size="sm" submit="Reopen payroll" tone="danger"}}
+<p class="text-muted small">Reopening moves the payroll back to “calculated” so it can be corrected, and withdraws the issued payslips until it is finalized again. The reason is stored in the audit log.</p>
+<label class="field"><span class="field-label">Reason for the correction <em>*</em></span><textarea class="input" name="reason" rows="3" required minlength="5"></textarea></label>
+{{/modal}}
+{{/if}}
+
+{{#if editable}}
+{{> payrollForm}}
+{{#> modal id="adjust-modal" title="Payroll Adjustments" action=""}}
+<div class="form-grid">
+  <label class="field"><span class="field-label">Additional earnings</span><input class="input" type="number" name="adjustment_additions" min="0" step="0.01" required><span class="field-hint">e.g. bonus, salary differential</span></label>
+  <label class="field"><span class="field-label">Additional deductions</span><input class="input" type="number" name="adjustment_deductions" min="0" step="0.01" required><span class="field-hint">e.g. damages, shortages</span></label>
+  <label class="field span-2"><span class="field-label">Adjustment notes (shown on payslip)</span><textarea class="input" name="adjustment_notes" rows="2"></textarea></label>
+</div>
+{{/modal}}
+{{/if}}

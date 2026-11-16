@@ -1,0 +1,13 @@
+{{!-- {{> analyticsTable table=someTable}} : { columns, rows } --}}
+<div class="table-wrap">
+  <table class="data-table">
+    <thead><tr>{{#each table.columns}}<th class="{{#if (or (eq type "number") (eq type "percent"))}}text-right{{/if}}">{{label}}</th>{{/each}}</tr></thead>
+    <tbody>
+      {{#each table.rows}}
+      <tr>{{#each ../table.columns}}<td class="{{#if (or (eq type "number") (eq type "percent"))}}text-right{{/if}}">{{#if (eq type "percent")}}{{pct (lookup ../this key)}}{{else}}{{cell (lookup ../this key) type}}{{/if}}</td>{{/each}}</tr>
+      {{else}}
+      <tr><td colspan="{{len table.columns}}" class="table-empty">{{icon "inbox" 28}}<div>No attendance records in this period.</div></td></tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

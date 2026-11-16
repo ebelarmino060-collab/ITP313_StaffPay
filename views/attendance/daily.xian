@@ -1,0 +1,63 @@
+{{> attendanceNav}}
+
+<div class="card">
+  <form class="filter-bar" method="get" action="/attendance" data-autosubmit>
+    <input class="input" type="date" name="date" value="{{this.date}}" max="{{today}}">
+    <select class="input" name="department_id">{{options departments filters.department_id placeholder="All departments" value="id" label="name"}}</select>
+    <select class="input" name="status">{{options statusOptions filters.status placeholder="All statuses"}}</select>
+    <div class="search-input">{{icon "search" 16}}<input class="input" type="search" name="search" value="{{filters.search}}" placeholder="Search employee…"></div>
+    <div class="filter-actions">
+      <button type="button" class="btn btn-secondary" data-modal="#attendance-modal" data-title="Record Attendance" data-action="/attendance" data-defaults="{{json (object date=date)}}">{{icon "plus" 16}}<span>Manual Entry</span></button>
+    </div>
+  </form>
+  {{#if canMark}}
+  <form method="post" action="/attendance/mark-absences" class="filter-bar" data-confirm="Create absent records for every employee scheduled on {{date date}} who did not time in? Only shifts that have ended are marked; holidays and approved leave are skipped." data-confirm-title="Mark absences?" data-confirm-label="Mark absences" data-confirm-tone="primary">
+    {{> csrf}}<input type="hidden" name="date" value="{{this.date}}">
+    <button type="submit" class="btn btn-secondary btn-sm">{{icon "user-x" 14}}<span>Mark absences for this date</span></button>
+  </form>
+  {{/if}}
+
+  <div class="summary-pills">
+    <span class="summary-date">{{icon "calendar-check-2" 16}} {{date date "long"}}</span>
+    {{#if holiday}}{{badge label=(concat "Holiday: " holiday) tone="info"}}{{/if}}
+    <span class="summary-pill tone-navy"><strong>{{summary.reported}}</strong> Reported</span>
+    <span class="summary-pill tone-success"><strong>{{summary.present}}</strong> On time</span>
+    <span class="summary-pill tone-warning"><strong>{{summary.late}}</strong> Late</span>
+    <span class="summary-pill tone-orange"><strong>{{summary.half_day}}</strong> Half-day</span>
+    <span class="summary-pill tone-danger"><strong>{{summary.absent}}</strong> Absent</span>
+    <span class="summary-pill tone-info"><strong>{{summary.on_leave}}</strong> On leave</span>
+    <span class="summary-pill tone-neutral"><strong>{{summary.awaiting}}</strong> Not yet in</span>
+    <span class="summary-pill tone-muted"><strong>{{summary.rest_day}}</strong> Rest day</span>
+  </div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Employee</th><th>Shift</th><th>Time In</th><th>Time Out</th><th>Late</th><th>Undertime</th><th>Overtime</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {{#each rows}}
+        <tr>
+          <td><div class="person-cell">{{avatar employee.full_name employee.photo_url 34}}<div><strong>{{employee.full_name}}</strong><span class="text-muted">{{employee.employee_code}} · {{employee.department}}</span></div></div></td>
+          <td>{{#if shift}}<span class="shift-tag" style="border-color: {{shift.color}}">{{shift.name}}<small>{{time scheduled_in}} – {{time scheduled_out}}</small></span>{{else}}<span class="text-muted">Rest day</span>{{/if}}</td>
+          <td>{{time attendance.time_in}}</td>
+          <td>{{time attendance.time_out}}</td>
+          <td>{{#if attendance.late_minutes}}<span class="text-warning">{{attendance.late_minutes}}m</span>{{else}}—{{/if}}</td>
+          <td>{{#if attendance.undertime_minutes}}<span class="text-warning">{{attendance.undertime_minutes}}m</span>{{else}}—{{/if}}</td>
+          <td>{{#if attendance.overtime_minutes}}{{hours attendance.overtime_minutes}}{{else}}—{{/if}}</td>
+          <td>{{badge status}}</td>
+          <td class="text-right">
+            {{#if attendance}}
+            <button type="button" class="btn btn-ghost btn-sm btn-icon" title="Edit" data-modal="#attendance-modal" data-title="Edit Attendance" data-subtitle="{{employee.full_name}} · {{date ../date}}" data-action="/attendance/{{attendance.id}}/update" data-record="{{json record}}">{{icon "pencil" 16}}</button>
+            {{else}}
+            <button type="button" class="btn btn-ghost btn-sm btn-icon" title="Record" data-modal="#attendance-modal" data-title="Record Attendance" data-subtitle="{{employee.full_name}} · {{date ../date}}" data-action="/attendance" data-defaults="{{json record}}">{{icon "plus" 16}}</button>
+            {{/if}}
+          </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="9" class="table-empty">{{icon "inbox" 28}}<div>No employees for this filter.</div></td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{{> attendanceModal}}

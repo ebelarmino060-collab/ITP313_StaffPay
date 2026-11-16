@@ -1,0 +1,13 @@
+{{!-- Renders a report object (columns, rows) as a table. --}}
+<div class="table-wrap">
+  <table class="data-table">
+    <thead><tr>{{#each report.columns}}<th class="{{#if (or (eq type "money") (eq type "number"))}}text-right{{/if}}">{{label}}</th>{{/each}}</tr></thead>
+    <tbody>
+      {{#each report.rows}}
+      <tr>{{#each @root.report.columns}}<td class="{{#if (or (eq type "money") (eq type "number"))}}text-right{{/if}}">{{cell (lookup ../this key) type}}</td>{{/each}}</tr>
+      {{else}}
+      <tr><td colspan="{{len report.columns}}" class="table-empty">{{icon "inbox" 28}}<div>No records for the selected filters.</div></td></tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>

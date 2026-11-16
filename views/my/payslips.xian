@@ -1,0 +1,42 @@
+<div class="page-header">
+  <div>
+    <h1>My Payslips</h1>
+    <p class="text-muted">Salary breakdown and payroll history</p>
+  </div>
+  <form method="get" action="/my/payslips" data-autosubmit><select class="input" name="year">{{options years year}}</select></form>
+</div>
+
+<div class="stat-grid stat-grid-4">
+  <div class="stat-card"><div class="stat-icon tone-navy">{{icon "wallet" 22}}</div><div class="stat-content"><span class="stat-label">Monthly Basic Salary</span><strong class="stat-value">{{money monthly}}</strong><span class="stat-hint">Daily {{money rates.daily}} · Hourly {{money rates.hourly}}</span></div></div>
+  <div class="stat-card"><div class="stat-icon tone-blue">{{icon "trending-up" 22}}</div><div class="stat-content"><span class="stat-label">Gross Earnings ({{year}})</span><strong class="stat-value">{{money summary.gross}}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon tone-amber">{{icon "landmark" 22}}</div><div class="stat-content"><span class="stat-label">Contributions &amp; Tax</span><strong class="stat-value">{{money (add summary.contributions summary.tax)}}</strong><span class="stat-hint">Tax {{money summary.tax}}</span></div></div>
+  <div class="stat-card"><div class="stat-icon tone-green">{{icon "receipt" 22}}</div><div class="stat-content"><span class="stat-label">Net Pay ({{year}})</span><strong class="stat-value">{{money summary.net}}</strong></div></div>
+</div>
+
+<section class="card">
+  <div class="card-header"><div><h3>Payroll History</h3><p class="text-muted">Payslips appear here once payroll has been approved.</p></div></div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Pay Period</th><th>Pay Date</th><th class="text-right">Days Worked</th><th class="text-right">Gross</th><th class="text-right">Deductions</th><th class="text-right">Net Pay</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {{#each payslips}}
+        <tr>
+          <td><a href="/my/payslips/{{id}}" class="link"><strong>{{date payroll.period_start "short"}} – {{date payroll.period_end}}</strong></a></td>
+          <td>{{date payroll.pay_date}}</td>
+          <td class="text-right">{{days_worked}}</td>
+          <td class="text-right">{{money gross_salary}}</td>
+          <td class="text-right text-danger">{{money total_deductions}}</td>
+          <td class="text-right"><strong class="text-navy">{{money net_salary}}</strong></td>
+          <td>{{badge payroll.status "payroll"}}</td>
+          <td class="text-right"><div class="row-actions">
+            <a href="/my/payslips/{{id}}" class="btn btn-ghost btn-sm btn-icon" title="View">{{icon "eye" 16}}</a>
+            <a href="/payslips/{{id}}/pdf" class="btn btn-ghost btn-sm btn-icon" title="Download PDF">{{icon "download" 16}}</a>
+          </div></td>
+        </tr>
+        {{else}}
+        <tr><td colspan="8" class="table-empty">{{icon "inbox" 28}}<div>No payslips released for this year.</div></td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</section>

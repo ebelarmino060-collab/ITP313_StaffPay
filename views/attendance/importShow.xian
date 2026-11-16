@@ -1,0 +1,117 @@
+{{> attendanceNav}}
+
+<div class="page-header">
+  <div>
+    <h2>Import #{{imp.id}} – {{imp.file_name}}</h2>
+    <p class="text-muted">
+      Uploaded {{datetime imp.createdAt}} by {{default imp.uploader.name "—"}} · Format: {{default imp.format.name "Standard"}}
+      {{#if imp.date_from}} · Dates {{date imp.date_from}} – {{date imp.date_to}}{{/if}}
+    </p>
+  </div>
+  <div class="page-actions">
+    <a href="/attendance/import" class="btn btn-secondary">{{icon "arrow-left" 16}}<span>Back</span></a>
+    <a href="/attendance/import/{{imp.id}}/file" class="btn btn-secondary">{{icon "download" 16}}<span>Original file</span></a>
+    {{#if isPreview}}
+      <form method="post" action="/attendance/import/{{imp.id}}/cancel" class="inline-form" data-confirm="Discard this upload? Nothing will be saved." data-confirm-title="Cancel import?" data-confirm-label="Cancel import">
+        {{> csrf}}<button type="submit" class="btn btn-secondary">{{icon "x" 16}}<span>Cancel</span></button>
+      </form>
+      <form method="post" action="/attendance/import/{{imp.id}}/commit" class="inline-form" data-confirm="Save {{summary.records_ready}} attendance record(s) to the database? Duplicates and invalid lines are skipped and kept in the error log.{{#if imp.options.mark_absences}} Scheduled employees with no punches will be marked absent.{{/if}}" data-confirm-title="Import attendance?" data-confirm-label="Import now" data-confirm-tone="success">
+        {{> csrf}}<button type="submit" class="btn btn-success" {{#unless summary.records_ready}}disabled{{/unless}}>{{icon "circle-check" 16}}<span>Confirm &amp; Import {{summary.records_ready}} record(s)</span></button>
+      </form>
+    {{/if}}
+  </div>
+</div>
+
+{{#if isPreview}}
+<div class="alert alert-warning">{{icon "triangle-alert" 16}} <strong>Preview – not saved yet.</strong> Review the records below, then press <strong>Confirm &amp; Import</strong>. Only the rows in “Ready” are saved.</div>
+{{else if (eq imp.status "completed")}}
+<div class="alert alert-success">{{icon "circle-check" 16}} Imported {{datetime imp.committed_at}}: <strong>{{imp.records_imported}}</strong> attendance record(s) saved{{#if imp.absences_marked}}, <strong>{{imp.absences_marked}}</strong> absence(s) marked{{/if}}. Payroll for these dates now uses this attendance automatically.</div>
+{{else}}
+<div class="alert alert-info">This import was cancelled. Nothing was saved.</div>
+{{/if}}
+
+<div class="stat-grid stat-grid-4">
+  <div class="stat-card"><div class="stat-icon tone-navy">{{icon "file-text" 22}}</div><div class="stat-content"><span class="stat-label">Records processed</span><strong class="stat-value">{{summary.total_lines}}</strong><span class="stat-hint">{{summary.punches}} valid punch(es)</span></div></div>
+  <div class="stat-card"><div class="stat-icon tone-green">{{icon "user-check" 22}}</div><div class="stat-content"><span class="stat-label">Identified employees</span><strong class="stat-value">{{summary.identified_employees}}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon tone-blue">{{icon "circle-check" 22}}</div><div class="stat-content"><span class="stat-label">{{#if isPreview}}Ready to import{{else}}Imported records{{/if}}</span><strong class="stat-value">{{#if isPreview}}{{summary.records_ready}}{{else}}{{imp.records_imported}}{{/if}}</strong><span class="stat-hint">{{hours summary.worked_minutes}} worked · {{hours summary.overtime_minutes}} OT</span></div></div>
+  <div class="stat-card"><div class="stat-icon tone-amber">{{icon "clipboard-list" 22}}</div><div class="stat-content"><span class="stat-label">Duplicates</span><strong class="stat-value">{{summary.duplicate_count}}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon tone-red">{{icon "user-x" 22}}</div><div class="stat-content"><span class="stat-label">Unrecognized IDs</span><strong class="stat-value">{{summary.unrecognized_ids}}</strong>{{#if summary.unrecognized_list}}<span class="stat-hint">{{summary.unrecognized_list}}</span>{{/if}}</div></div>
+  <div class="stat-card"><div class="stat-icon tone-red">{{icon "triangle-alert" 22}}</div><div class="stat-content"><span class="stat-label">Invalid records</span><strong class="stat-value">{{summary.invalid_count}}</strong></div></div>
+  <div class="stat-card"><div class="stat-icon tone-sky">{{icon "calendar-days" 22}}</div><div class="stat-content"><span class="stat-label">Employees with no punches</span><strong class="stat-value">{{summary.missing_employees}}</strong><span class="stat-hint">{{#if imp.options.mark_absences}}marked absent on import{{else}}not marked absent{{/if}}</span></div></div>
+</div>
+
+<section class="card">
+  <nav class="subnav">
+    <a href="?tab=ready" class="{{active (eq active "ready")}}">{{#if isPreview}}Ready{{else}}Imported{{/if}} ({{counts.ready}})</a>
+    <a href="?tab=duplicate" class="{{active (eq active "duplicate")}}">Duplicates ({{counts.duplicate}})</a>
+    <a href="?tab=error" class="{{active (eq active "error")}}">Needs review ({{counts.error}})</a>
+    <a href="?tab=lines" class="{{active (eq active "lines")}}">All errors ({{counts.lines}})</a>
+    <a href="?tab=missing" class="{{active (eq active "missing")}}">No punches ({{counts.missing}})</a>
+  </nav>
+
+  {{#if showRows}}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Employee ID</th><th>Employee Name</th><th>Date</th><th>Time In</th><th>Time Out</th><th class="text-right">Total Hours</th><th class="text-right">OT Hours</th><th class="text-right">Late</th><th>Attendance</th><th>Import Status</th><th>Notes</th></tr></thead>
+      <tbody>
+        {{#each pageRows}}
+        <tr>
+          <td><strong>{{employee_code}}</strong>{{#if (ne file_code employee_code)}}<br><small class="text-muted">file: {{file_code}}</small>{{/if}}</td>
+          <td>{{employee_name}}</td>
+          <td>{{date this.date}}</td>
+          <td>{{default time_in_label "—"}}</td>
+          <td>{{default time_out_label "—"}}</td>
+          <td class="text-right">{{this.hours}}</td>
+          <td class="text-right">{{ot}}</td>
+          <td class="text-right">{{#if late_minutes}}<span class="text-warning">{{late_minutes}}m</span>{{else}}—{{/if}}</td>
+          <td>{{#if status}}{{badge status}}{{else}}—{{/if}}</td>
+          <td>{{#if (eq import_status "ready")}}{{#if @root.isPreview}}{{badge label="Ready" tone="success"}}{{else}}{{badge label="Imported" tone="success"}}{{/if}}{{/if}}{{#if (eq import_status "duplicate")}}{{badge label="Duplicate" tone="warning"}}{{/if}}{{#if (eq import_status "error")}}{{badge label=error_label tone="danger"}}{{/if}}</td>
+          <td class="cell-wrap small">{{#if message}}<span class="text-danger">{{message}}</span>{{#if notes_text}}<br>{{/if}}{{/if}}{{notes_text}}</td>
+        </tr>
+        {{else}}
+        <tr><td colspan="11" class="table-empty">{{icon "inbox" 28}}<div>Nothing here.</div></td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{/if}}
+
+  {{#if (eq active "lines")}}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th class="text-right">Line</th><th>Employee ID</th><th>Date</th><th>Error</th><th>Message</th><th>File content</th></tr></thead>
+      <tbody>
+        {{#each pageRows}}
+        <tr>
+          <td class="text-right">{{default line "—"}}</td>
+          <td>{{default code "—"}}</td>
+          <td>{{default this.date "—"}}</td>
+          <td>{{#if (or (eq type "duplicate") (eq type "duplicate_line"))}}{{badge label=label tone="warning"}}{{else}}{{badge label=label tone="danger"}}{{/if}}</td>
+          <td class="cell-wrap">{{message}}</td>
+          <td class="cell-wrap"><code class="small">{{raw}}</code></td>
+        </tr>
+        {{else}}
+        <tr><td colspan="6" class="table-empty">{{icon "circle-check" 28}}<div>No errors – every line was valid.</div></td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{/if}}
+
+  {{#if (eq active "missing")}}
+  <p class="text-muted small">Active employees who were scheduled to work in this date range but have no punches in the file and no other attendance record.{{#if isPreview}} {{#if imp.options.mark_absences}}They will be marked absent when you import (only for shifts that have ended).{{else}}They will NOT be marked absent (option off).{{/if}}{{/if}}</p>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Employee ID</th><th>Employee</th><th class="text-right">Scheduled days</th><th>Dates</th></tr></thead>
+      <tbody>
+        {{#each pageRows}}
+        <tr><td><strong>{{employee_code}}</strong></td><td>{{employee_name}}</td><td class="text-right">{{days}}</td><td class="cell-wrap small">{{dates}}</td></tr>
+        {{else}}
+        <tr><td colspan="4" class="table-empty">Every scheduled employee has punches in this file.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{/if}}
+  {{> pagination}}
+</section>

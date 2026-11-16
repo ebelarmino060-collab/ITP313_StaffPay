@@ -1,0 +1,44 @@
+<div class="page-header">
+  <div>
+    <h1>System Settings</h1>
+    <p class="text-muted">Hotel profile, attendance rules, payroll rates and leave policy</p>
+  </div>
+</div>
+<nav class="subnav">
+  {{#each groups}}<a href="/settings?tab={{key}}" class="{{active active}}">{{label}}</a>{{/each}}
+</nav>
+
+<div class="grid grid-3">
+  <section class="card span-2">
+    <div class="card-header"><h3>{{group.label}}</h3></div>
+    {{#if group.note}}<div class="alert alert-info">{{group.note}}</div>{{/if}}
+    <form method="post" action="/settings" class="form-grid" id="settings-form">
+      {{> csrf}}
+      <input type="hidden" name="_tab" value="{{tab}}">
+      {{#each fields}}
+        {{#if isBoolean}}
+          <label class="checkbox span-2"><input type="checkbox" name="{{key}}" value="1" {{checked value}}><span>{{label}}</span></label>
+        {{else if isFrequency}}
+          <label class="field"><span class="field-label">{{label}}</span>
+            <select class="input" name="{{key}}"><option value="semi_monthly" {{selected value "semi_monthly"}}>Semi-monthly (1–15, 16–end)</option><option value="monthly" {{selected value "monthly"}}>Monthly</option></select></label>
+        {{else}}
+          <label class="field {{#if wide}}span-2{{/if}}"><span class="field-label">{{label}}</span>
+            <input class="input" name="{{key}}" value="{{value}}" {{#if isNumber}}type="number" step="any" min="0"{{else if isTime}}type="time"{{else}}type="text"{{/if}}></label>
+        {{/if}}
+      {{/each}}
+      <div class="form-actions span-2"><button type="submit" class="btn btn-primary">{{icon "save" 16}}<span>Save settings</span></button></div>
+    </form>
+  </section>
+
+  {{#if (eq tab "hotel")}}
+  <section class="card">
+    <div class="card-header"><div><h3>Hotel Logo</h3><p class="text-muted">Shown on the sidebar, login page, payslips and reports (PNG or JPG for PDFs)</p></div></div>
+    <div class="logo-preview">{{#if logoUrl}}<img src="{{logoUrl}}" alt="Hotel logo">{{else}}<span class="brand-mark large">S</span>{{/if}}</div>
+    <form method="post" action="/settings/logo" enctype="multipart/form-data" class="stack">
+      {{> csrf}}
+      <input type="file" name="logo" accept="image/*" class="input" required>
+      <button type="submit" class="btn btn-secondary btn-block">{{icon "upload" 16}}<span>Upload logo</span></button>
+    </form>
+  </section>
+  {{/if}}
+</div>

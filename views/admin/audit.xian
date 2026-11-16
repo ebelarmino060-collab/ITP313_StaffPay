@@ -1,0 +1,39 @@
+<div class="page-header">
+  <div>
+    <h1>Audit Logs</h1>
+    <p class="text-muted">Important administrative and payroll actions</p>
+  </div>
+</div>
+
+<div class="card">
+  <form class="filter-bar" method="get" action="/audit-logs" data-autosubmit>
+    <div class="search-input">{{icon "search" 16}}<input class="input" type="search" name="search" value="{{filters.search}}" placeholder="Search description…"></div>
+    <select class="input" name="action">{{options actions filters.action placeholder="All actions"}}</select>
+    <input class="input" type="date" name="from" value="{{filters.from}}" title="From">
+    <input class="input" type="date" name="to" value="{{filters.to}}" title="To">
+  </form>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Date &amp; Time</th><th>User</th><th>Action</th><th>Description</th><th>IP Address</th><th></th></tr></thead>
+      <tbody>
+        {{#each logs}}
+        <tr>
+          <td>{{datetime createdAt}}</td>
+          <td>{{#if user}}{{user.name}}<br><small class="text-muted">{{roleLabel user.role}}</small>{{else}}System{{/if}}</td>
+          <td>{{badge label=(titleCase action) tone=tone}}</td>
+          <td class="cell-wrap">{{description}}</td>
+          <td><small class="text-muted">{{default ip_address "—"}}</small></td>
+          <td>{{#if changesText}}<button type="button" class="btn btn-ghost btn-sm" data-modal="#changes-modal" data-subtitle="{{description}}" data-text-changes="{{changesText}}">Details</button>{{/if}}</td>
+        </tr>
+        {{else}}
+        <tr><td colspan="6" class="table-empty">No log entries.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{> pagination}}
+</div>
+
+{{#> modal id="changes-modal" title="Change Details" action="" readonly=true}}
+<pre class="code-block" data-fill-text="Changes"></pre>
+{{/modal}}

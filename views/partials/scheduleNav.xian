@@ -1,0 +1,12 @@
+<div class="page-header">
+  <div>
+    <h1>Work Schedules &amp; Shifts</h1>
+    <p class="text-muted">Assign shifts, working days and rest days; view weekly and monthly rosters</p>
+  </div>
+</div>
+<nav class="subnav">
+  <a href="/schedules" class="{{active (eq tab "calendar")}}">Roster Calendar</a>
+  <a href="/schedules/assignments" class="{{active (eq tab "assignments")}}">Schedule Assignments</a>
+  <a href="/schedules/shifts" class="{{active (eq tab "shifts")}}">Shifts</a>
+  <a href="/schedules/holidays" class="{{active (eq tab "holidays")}}">Holidays</a>
+</nav>

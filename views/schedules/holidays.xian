@@ -1,0 +1,45 @@
+{{> scheduleNav}}
+
+<div class="card">
+  <div class="alert alert-info">Employees who work on a holiday receive holiday pay (rate × hourly rate for hours worked). No absence is recorded on holidays.</div>
+  <form class="filter-bar" method="get" action="/schedules/holidays" data-autosubmit>
+    <select class="input" name="year">{{options years year}}</select>
+    {{#if me.isAdmin}}
+    <div class="filter-actions"><button type="button" class="btn btn-primary" data-modal="#holiday-modal" data-title="Add Holiday" data-action="/schedules/holidays">{{icon "plus" 16}}<span>Add Holiday</span></button></div>
+    {{/if}}
+  </form>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Date</th><th>Holiday</th><th>Type</th><th>Pay Rate</th>{{#if me.isAdmin}}<th></th>{{/if}}</tr></thead>
+      <tbody>
+        {{#each holidays}}
+        <tr>
+          <td>{{date date "long"}}</td>
+          <td><strong>{{name}}</strong></td>
+          <td>{{#if (eq type "regular")}}{{badge label="Regular Holiday" tone="navy"}}{{else}}{{badge label="Special Non-working" tone="info"}}{{/if}}</td>
+          <td>{{percent rate}}</td>
+          {{#if @root.me.isAdmin}}
+          <td class="text-right"><div class="row-actions">
+            <button type="button" class="btn btn-ghost btn-sm btn-icon" title="Edit" data-modal="#holiday-modal" data-title="Edit Holiday" data-action="/schedules/holidays/{{id}}/update" data-record="{{json this}}">{{icon "pencil" 16}}</button>
+            {{> deleteButton action=(concat "/schedules/holidays/" id "/delete") message=(concat "Remove the holiday " name "?") confirmLabel="Remove"}}
+          </div></td>
+          {{/if}}
+        </tr>
+        {{else}}
+        <tr><td colspan="5" class="table-empty">{{icon "inbox" 28}}<div>No holidays configured for this year.</div></td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{{#if me.isAdmin}}
+{{#> modal id="holiday-modal" title="Add Holiday" action="/schedules/holidays"}}
+<div class="form-grid">
+  <label class="field span-2"><span class="field-label">Holiday name <em>*</em></span><input class="input" name="name" required maxlength="120"></label>
+  <label class="field"><span class="field-label">Date <em>*</em></span><input class="input" type="date" name="date" required></label>
+  <label class="field"><span class="field-label">Type</span><select class="input" name="type" data-holiday-type><option value="regular">Regular holiday</option><option value="special">Special non-working day</option></select></label>
+  <label class="field"><span class="field-label">Pay rate multiplier</span><input class="input" type="number" name="rate" step="0.05" min="1" max="5" value="2.00"><span class="field-hint">2.00 = 200% for hours worked</span></label>
+</div>
+{{/modal}}
+{{/if}}

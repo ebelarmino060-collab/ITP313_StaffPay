@@ -1,0 +1,14 @@
+{{!-- {{> weekStrip days=calendarDays}} --}}
+<div class="week-strip">
+  {{#each days}}
+  <div class="week-day type-{{type}}">
+    <span class="week-day-name">{{date date "weekday"}}</span>
+    <span class="week-day-date">{{date date "short"}}</span>
+    {{#if (eq type "shift")}}<span class="week-day-shift" style="border-color: {{shift.color}}">{{shift.short}}<small>{{clock shift.start_time}} – {{clock shift.end_time}}</small></span>{{/if}}
+    {{#if (eq type "rest_day")}}<span class="week-day-shift muted">Rest day</span>{{/if}}
+    {{#if (eq type "leave")}}<span class="week-day-shift leave">{{leaveType leave_type}}</span>{{/if}}
+    {{#if (eq type "unscheduled")}}<span class="week-day-shift muted">Not scheduled</span>{{/if}}
+    {{#if holiday}}<span class="week-day-holiday">{{holiday}}</span>{{/if}}
+  </div>
+  {{/each}}
+</div>

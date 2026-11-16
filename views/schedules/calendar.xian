@@ -1,0 +1,54 @@
+{{> scheduleNav}}
+
+<div class="card">
+  <form class="filter-bar" method="get" action="/schedules" data-autosubmit>
+    <input type="hidden" name="view" value="{{view}}">
+    <div class="tabs-inline">
+      <a href="{{links.week}}" class="{{active (eq view "week")}}">Weekly</a>
+      <a href="{{links.month}}" class="{{active (eq view "month")}}">Monthly</a>
+    </div>
+    <div class="date-nav">
+      <a href="{{links.prev}}" class="btn btn-secondary btn-sm btn-icon" aria-label="Previous">{{icon "chevron-left" 16}}</a>
+      <strong>{{label}}</strong>
+      <a href="{{links.next}}" class="btn btn-secondary btn-sm btn-icon" aria-label="Next">{{icon "chevron-right" 16}}</a>
+      <a href="{{links.today}}" class="btn btn-ghost btn-sm">Today</a>
+    </div>
+    <select class="input" name="department_id">{{options departments filters.department_id placeholder="All departments" value="id" label="name"}}</select>
+    <select class="input" name="shift_id">{{options shifts filters.shift_id placeholder="All shifts" value="id" label="name"}}</select>
+  </form>
+
+  <div class="legend">
+    {{#each shifts}}<span><i style="background: {{color}}"></i>{{label}}</span>{{/each}}
+    <span><i class="legend-rest"></i>Rest day</span>
+    <span><i class="legend-leave"></i>On leave</span>
+    <span><i class="legend-holiday"></i>Holiday</span>
+  </div>
+
+  <div class="roster-wrap">
+    <table class="roster">
+      <thead>
+        <tr>
+          <th class="roster-name">Employee</th>
+          {{#each dates}}<th class="{{#if isToday}}today{{/if}}"><span>{{date date "weekday"}}</span><strong>{{date date "day"}}</strong></th>{{/each}}
+        </tr>
+      </thead>
+      <tbody>
+        {{#each rows}}
+        <tr>
+          <td class="roster-name"><strong>{{employee.full_name}}</strong><span>{{default employee.position employee.department}}</span></td>
+          {{#each days}}
+          <td class="roster-cell type-{{type}} {{#if holiday}}holiday{{/if}} {{#if (isToday date)}}today{{/if}}" title="{{#if shift}}{{shift.name}}: {{clock shift.start_time}} - {{clock shift.end_time}}{{/if}}{{#if leave_type}}{{leaveType leave_type}}{{/if}}{{#if holiday}} · Holiday: {{holiday}}{{/if}}">
+            {{#if (eq type "shift")}}<span class="roster-shift" style="background: {{shift.color}}1a; border-color: {{shift.color}}; color: {{shift.color}}">{{shift.short}}</span>{{/if}}
+            {{#if (eq type "leave")}}<span class="roster-leave">Leave</span>{{/if}}
+            {{#if (eq type "rest_day")}}<span class="roster-rest">Rest</span>{{/if}}
+            {{#if (eq type "unscheduled")}}<span class="roster-none">—</span>{{/if}}
+          </td>
+          {{/each}}
+        </tr>
+        {{else}}
+        <tr><td colspan="40" class="table-empty">No employees found.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</div>

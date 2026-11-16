@@ -1,0 +1,52 @@
+<div class="page-header">
+  <div>
+    <h1>User Accounts</h1>
+    <p class="text-muted">Administrator, HR / Payroll and employee login accounts</p>
+  </div>
+  <div class="page-actions">
+    <button type="button" class="btn btn-primary" data-modal="#user-modal" data-title="Add User" data-action="/users">{{icon "plus" 16}}<span>Add User</span></button>
+  </div>
+</div>
+
+<div class="card">
+  <form class="filter-bar" method="get" action="/users" data-autosubmit>
+    <div class="search-input">{{icon "search" 16}}<input class="input" type="search" name="search" value="{{filters.search}}" placeholder="Search name or email…"></div>
+    <select class="input" name="role">{{options opts.roles filters.role placeholder="All roles"}}</select>
+  </form>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>User</th><th>Role</th><th>Linked Employee</th><th>Status</th><th>Last Sign In</th><th></th></tr></thead>
+      <tbody>
+        {{#each users}}
+        <tr>
+          <td><div class="person-cell">{{avatar name null 34}}<div><strong>{{name}}</strong><span class="text-muted">{{email}}</span></div></div></td>
+          <td>{{#if (eq role "admin")}}{{badge label=(roleLabel role) tone="navy"}}{{else if (eq role "hr")}}{{badge label=(roleLabel role) tone="info"}}{{else}}{{badge label=(roleLabel role) tone="neutral"}}{{/if}}</td>
+          <td>{{#if employee}}{{employee.full_name}} ({{employee.employee_code}}){{else}}—{{/if}}</td>
+          <td>{{#if is_active}}{{badge label="Active" tone="success"}}{{else}}{{badge label="Disabled" tone="muted"}}{{/if}}</td>
+          <td>{{datetime last_login_at}}</td>
+          <td class="text-right"><div class="row-actions">
+            <button type="button" class="btn btn-ghost btn-sm btn-icon" title="Edit" data-modal="#user-modal" data-title="Edit User" data-subtitle="{{email}}" data-action="/users/{{id}}/update" data-record="{{json form}}">{{icon "pencil" 16}}</button>
+            {{#unless isMe}}{{> deleteButton action=(concat "/users/" id "/delete") message=(concat "Delete the account " email "? The linked employee record (if any) is kept.")}}{{/unless}}
+          </div></td>
+        </tr>
+        {{else}}
+        <tr><td colspan="6" class="table-empty">No users found.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{> pagination}}
+</div>
+
+{{#> modal id="user-modal" title="Add User" action="/users"}}
+<div class="form-grid">
+  <label class="field"><span class="field-label">Full name <em>*</em></span><input class="input" name="name" required maxlength="120"></label>
+  <label class="field"><span class="field-label">Email (login) <em>*</em></span><input class="input" type="email" name="email" required maxlength="150"></label>
+  <label class="field"><span class="field-label">Password</span><input class="input" type="password" name="password" autocomplete="new-password" minlength="8"><span class="field-hint">At least 8 characters. Leave blank when editing to keep it.</span></label>
+  <label class="field"><span class="field-label">Role</span><select class="input" name="role">{{options @root.opts.roles "employee"}}</select></label>
+  <label class="field span-2"><span class="field-label">Linked employee record</span>
+    <select class="input" name="employee_id">{{options @root.employees placeholder="None" value="id" label="option_label"}}</select>
+    <span class="field-hint">Link an employee record to give this user time clock, payslip and leave access.</span></label>
+  <label class="checkbox"><input type="checkbox" name="is_active" value="1" checked><span>Account is active</span></label>
+</div>
+{{/modal}}

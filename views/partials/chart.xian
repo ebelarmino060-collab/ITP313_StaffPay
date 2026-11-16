@@ -1,0 +1,5 @@
+{{!-- {{> chart id="weekly" config=charts.weekly height=280}} --}}
+<div class="chart-box" style="height:{{default height 280}}px">
+  <canvas data-chart="chart-{{id}}" aria-label="Chart"></canvas>
+</div>
+<script type="application/json" id="chart-{{id}}">{{jsonScript config}}</script>

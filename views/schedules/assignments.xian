@@ -1,0 +1,78 @@
+{{> scheduleNav}}
+
+<div class="card">
+  <form class="filter-bar" method="get" action="/schedules/assignments" data-autosubmit>
+    <div class="search-input">{{icon "search" 16}}<input class="input" type="search" name="search" value="{{filters.search}}" placeholder="Search employee…"></div>
+    <select class="input" name="department_id">{{options departments filters.department_id placeholder="All departments" value="id" label="name"}}</select>
+    <select class="input" name="shift_id">{{options shifts filters.shift_id placeholder="All shifts" value="id" label="name"}}</select>
+    <select class="input" name="active">
+      <option value="1" {{selected filters.active "1"}}>Currently active</option>
+      <option value="0" {{selected filters.active "0"}}>All (incl. past & upcoming)</option>
+    </select>
+    <div class="filter-actions">
+      <button type="button" class="btn btn-primary" data-modal="#schedule-modal">{{icon "plus" 16}}<span>Assign Schedule</span></button>
+    </div>
+  </form>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Employee</th><th>Shift</th><th>Working Days</th><th>Rest Days</th><th>Effective</th><th>State</th><th></th></tr></thead>
+      <tbody>
+        {{#each schedules}}
+        <tr>
+          <td><div class="person-cell">{{avatar employee.full_name employee.photo_url 34}}<div><strong>{{employee.full_name}}</strong><span class="text-muted">{{employee.employee_code}} · {{employee.department.name}}</span></div></div></td>
+          <td><span class="shift-tag" style="border-color: {{shift.color}}">{{shift.name}}<small>{{clock shift.start_time}} – {{clock shift.end_time}}</small></span></td>
+          <td>{{weekdays working_days}}</td>
+          <td>{{weekdays rest_days}}</td>
+          <td>{{date effective_from}} – {{#if effective_to}}{{date effective_to}}{{else}}ongoing{{/if}}</td>
+          <td>{{#if (eq state "upcoming")}}{{badge label="Upcoming" tone="info"}}{{else if (eq state "ended")}}{{badge label="Ended" tone="muted"}}{{else}}{{badge label="Active" tone="success"}}{{/if}}</td>
+          <td class="text-right"><div class="row-actions">
+            <button type="button" class="btn btn-ghost btn-sm btn-icon" title="Edit" data-modal="#schedule-edit-modal" data-subtitle="{{employee.full_name}}" data-action="/schedules/{{id}}/update" data-record="{{json this}}">{{icon "pencil" 16}}</button>
+            {{> deleteButton action=(concat "/schedules/" id "/delete") message=(concat "Remove the " shift.name " schedule of " employee.full_name "? Existing attendance is not affected.") confirmLabel="Remove"}}
+          </div></td>
+        </tr>
+        {{else}}
+        <tr><td colspan="7" class="table-empty">{{icon "inbox" 28}}<div>No schedules found.</div></td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{> pagination}}
+</div>
+
+{{#> modal id="schedule-modal" title="Assign Work Schedule" action="/schedules" size="lg" submit="Assign schedule" subtitle="Select one or more employees. Any schedule overlapping the new start date is closed automatically."}}
+<div class="form-sections">
+  <div class="form-grid">
+    <label class="field"><span class="field-label">Shift <em>*</em></span><select class="input" name="shift_id" required>{{options @root.shifts placeholder="Select shift…" value="id" label="label"}}</select></label>
+    <div class="field"><span class="field-label">Working days (others are rest days)</span>
+      <div class="weekday-picker">{{#each @root.opts.weekdays}}<label><input type="checkbox" name="working_days[]" value="{{value}}" {{#if (lt value 7)}}checked{{/if}}><span>{{short}}</span></label>{{/each}}</div>
+    </div>
+    <label class="field"><span class="field-label">Effective from <em>*</em></span><input class="input" type="date" name="effective_from" value="{{@root.today}}" required></label>
+    <label class="field"><span class="field-label">Effective to (optional)</span><input class="input" type="date" name="effective_to"></label>
+    <label class="field span-2"><span class="field-label">Notes</span><textarea class="input" name="notes" rows="2"></textarea></label>
+  </div>
+  <fieldset>
+    <legend>Employees</legend>
+    <div class="picker-toolbar">
+      <select class="input" data-filter-target="#schedule-employees">{{options @root.departments placeholder="All departments" value="id" label="name"}}</select>
+      <input class="input" type="search" placeholder="Filter by name…" data-filter-list="#schedule-employees">
+      <label class="checkbox"><input type="checkbox" data-check-all="#schedule-employees input[type=checkbox]"><span>Select all shown</span></label>
+    </div>
+    <div class="employee-picker" id="schedule-employees">
+      {{#each @root.employees}}<label class="checkbox" data-group="{{department_id}}"><input type="checkbox" name="employee_ids[]" value="{{id}}"><span>{{option_label}}</span></label>{{/each}}
+    </div>
+  </fieldset>
+</div>
+{{/modal}}
+
+{{#> modal id="schedule-edit-modal" title="Edit Schedule" action=""}}
+<div class="form-grid">
+  <label class="field"><span class="field-label">Shift <em>*</em></span><select class="input" name="shift_id" required>{{options @root.shifts value="id" label="label"}}</select></label>
+  <div class="field"><span class="field-label">Working days</span>
+    <div class="weekday-picker">{{#each @root.opts.weekdays}}<label><input type="checkbox" name="working_days[]" value="{{value}}"><span>{{short}}</span></label>{{/each}}</div>
+  </div>
+  <label class="field"><span class="field-label">Effective from <em>*</em></span><input class="input" type="date" name="effective_from" required></label>
+  <label class="field"><span class="field-label">Effective to</span><input class="input" type="date" name="effective_to"></label>
+  <label class="field span-2"><span class="field-label">Notes</span><textarea class="input" name="notes" rows="2"></textarea></label>
+</div>
+{{/modal}}

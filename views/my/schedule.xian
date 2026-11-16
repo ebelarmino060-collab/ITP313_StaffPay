@@ -1,0 +1,66 @@
+<div class="page-header">
+  <div>
+    <h1>My Schedule</h1>
+    <p class="text-muted">Your assigned shifts, working days and rest days</p>
+  </div>
+</div>
+
+<div class="grid grid-3">
+  <section class="card">
+    <div class="card-header"><h3>Current Assignment</h3></div>
+    {{#if current}}
+      <div class="shift-hero" style="border-color: {{current.shift.color}}">
+        <strong>{{current.shift.name}}</strong>
+        <span>{{clock current.shift.start_time}} – {{clock current.shift.end_time}}</span>
+      </div>
+      <dl class="info-grid">
+        <div><dt>Working days</dt><dd>{{weekdays current.working_days}}</dd></div>
+        <div><dt>Rest days</dt><dd>{{weekdays current.rest_days}}</dd></div>
+        <div><dt>Effective</dt><dd>{{date current.effective_from}} – {{#if current.effective_to}}{{date current.effective_to}}{{else}}ongoing{{/if}}</dd></div>
+        <div><dt>Notes</dt><dd>{{default current.notes "—"}}</dd></div>
+      </dl>
+    {{else}}
+      <p class="text-muted">You have no schedule assigned yet. Please contact HR.</p>
+    {{/if}}
+    {{#if upcoming.length}}
+      <h4 class="section-title mt-2">Upcoming changes</h4>
+      <ul class="simple-list">{{#each upcoming}}<li><span>{{shift.name}} · {{weekdays working_days}}</span><strong>from {{date effective_from}}</strong></li>{{/each}}</ul>
+    {{/if}}
+  </section>
+
+  <section class="card span-2">
+    <div class="card-header">
+      <h3>{{#if (eq view "week")}}Weekly{{else}}Monthly{{/if}} Schedule</h3>
+      <div class="date-nav">
+        <div class="tabs-inline">
+          <a href="{{links.week}}" class="{{active (eq view "week")}}">Week</a>
+          <a href="{{links.month}}" class="{{active (eq view "month")}}">Month</a>
+        </div>
+        <a href="{{links.prev}}" class="btn btn-secondary btn-sm btn-icon" aria-label="Previous">{{icon "chevron-left" 16}}</a>
+        <strong>{{label}}</strong>
+        <a href="{{links.next}}" class="btn btn-secondary btn-sm btn-icon" aria-label="Next">{{icon "chevron-right" 16}}</a>
+      </div>
+    </div>
+
+    {{#if (eq view "week")}}
+      {{> weekStrip days=days}}
+    {{else}}
+    <div class="month-calendar">
+      <div class="month-head">Mon</div><div class="month-head">Tue</div><div class="month-head">Wed</div><div class="month-head">Thu</div><div class="month-head">Fri</div><div class="month-head">Sat</div><div class="month-head">Sun</div>
+      {{#each cells}}
+        {{#if this}}
+        <div class="month-cell type-{{type}} {{#if isToday}}today{{/if}}">
+          <span class="month-date">{{parseDay date}}</span>
+          <span class="month-content">
+            {{#if (eq type "shift")}}<span class="roster-shift" style="border-color: {{shift.color}}; color: {{shift.color}}; background: {{shift.color}}1a">{{shift.short}}</span><small>{{clock shift.start_time}} – {{clock shift.end_time}}</small>{{/if}}
+            {{#if (eq type "rest_day")}}<small class="text-muted">Rest day</small>{{/if}}
+            {{#if (eq type "leave")}}<span class="roster-leave">{{leaveType leave_type}}</span>{{/if}}
+            {{#if holiday}}<small class="text-info">{{holiday}}</small>{{/if}}
+          </span>
+        </div>
+        {{else}}<div class="month-cell empty"></div>{{/if}}
+      {{/each}}
+    </div>
+    {{/if}}
+  </section>
+</div>

@@ -1,0 +1,10 @@
+{{#if pager.show}}
+<div class="pagination">
+  <span class="text-muted">Showing {{pager.from}}–{{pager.to}} of {{pager.total}}</span>
+  <div class="pagination-buttons">
+    {{#if pager.prev}}<a href="{{pager.prev}}" aria-label="Previous page">{{icon "chevron-left" 16}}</a>{{else}}<span class="disabled">{{icon "chevron-left" 16}}</span>{{/if}}
+    {{#each pager.pages}}<a href="{{url}}" class="{{active active}}">{{this.num}}</a>{{/each}}
+    {{#if pager.next}}<a href="{{pager.next}}" aria-label="Next page">{{icon "chevron-right" 16}}</a>{{else}}<span class="disabled">{{icon "chevron-right" 16}}</span>{{/if}}
+  </div>
+</div>
+{{/if}}

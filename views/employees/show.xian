@@ -1,0 +1,117 @@
+<div class="page-header">
+  <div>
+    <h1>{{employee.full_name}}</h1>
+    <p class="text-muted">{{employee.employee_code}} · {{default employee.position.title "No position"}} · {{default employee.department.name "No department"}}</p>
+  </div>
+  <div class="page-actions">
+    <a href="/employees" class="btn btn-secondary">{{icon "arrow-left" 16}}<span>Back</span></a>
+    {{#if me.isAdmin}}
+    <button type="button" class="btn btn-primary" data-modal="#employee-modal" data-title="Edit {{employee.full_name}}" data-subtitle="{{employee.employee_code}}" data-action="/employees/{{employee.id}}/update" data-record="{{json form}}">{{icon "pencil" 16}}<span>Edit</span></button>
+    {{/if}}
+  </div>
+</div>
+
+<div class="grid grid-3">
+  <section class="card profile-card">
+    <div class="profile-head">
+      {{avatar employee.full_name employee.photo_url 96}}
+      <h2>{{employee.full_name}}</h2>
+      <p class="text-muted">{{employee.position.title}}</p>
+      {{badge employee.employment_status "employment"}}
+    </div>
+    <dl class="info-grid">
+      <div><dt>Email</dt><dd>{{default employee.email "—"}}</dd></div>
+      <div><dt>Contact number</dt><dd>{{default employee.contact_number "—"}}</dd></div>
+      <div><dt>Gender</dt><dd>{{default (titleCase employee.gender) "—"}}</dd></div>
+      <div><dt>Birth date</dt><dd>{{date employee.birth_date}}</dd></div>
+      <div><dt>Home address</dt><dd>{{default employee.address "—"}}</dd></div>
+      <div><dt>Login account</dt><dd>{{#if employee.user}}{{employee.user.email}} ({{roleLabel employee.user.role}}{{#unless employee.user.is_active}}, disabled{{/unless}}){{else}}None{{/if}}</dd></div>
+    </dl>
+  </section>
+
+  <div class="span-2 stack">
+    <section class="card">
+      <div class="card-header"><h3>Employment &amp; Compensation</h3></div>
+      <dl class="info-grid">
+        <div><dt>Department</dt><dd>{{default employee.department.name "—"}}</dd></div>
+        <div><dt>Position</dt><dd>{{default employee.position.title "—"}}</dd></div>
+        <div><dt>Employment type</dt><dd>{{employmentType employee.employment_type}}</dd></div>
+        <div><dt>Date hired</dt><dd>{{date employee.date_hired}}</dd></div>
+        <div><dt>Basic salary (monthly)</dt><dd>{{money employee.basic_salary}}</dd></div>
+        <div><dt>Daily rate</dt><dd>{{money rates.daily}} <small class="text-muted">(÷ {{rates.days}} working days)</small></dd></div>
+        <div><dt>Hourly rate</dt><dd>{{money rates.hourly}}</dd></div>
+        <div><dt>Current schedule</dt><dd>{{#if currentSchedule}}{{currentSchedule.shift.label}} · {{weekdays currentSchedule.working_days}}{{else}}Not assigned{{/if}}</dd></div>
+      </dl>
+      <div class="balance-row mt-2">
+        {{#each balances}}<div class="balance-pill"><span>{{leaveType leave_type}}</span><strong>{{remaining}}</strong><small>{{used}} used of {{allocated}}</small></div>{{/each}}
+      </div>
+    </section>
+
+    <div class="grid grid-2 no-margin">
+      <section class="card">
+        <div class="card-header"><h3>Allowances (per pay period)</h3></div>
+        <ul class="simple-list">
+          {{#each employee.allowances}}<li><span>{{name}} {{#unless is_active}}{{badge label="Inactive" tone="muted"}}{{/unless}}</span><strong>{{money amount}}</strong></li>{{else}}<li class="text-muted">None</li>{{/each}}
+        </ul>
+      </section>
+      <section class="card">
+        <div class="card-header"><h3>Other Deductions (per pay period)</h3></div>
+        <ul class="simple-list">
+          {{#each employee.deductions}}<li><span>{{name}} <small class="text-muted">({{deductionType type}})</small></span><strong>{{money amount}}</strong></li>{{else}}<li class="text-muted">None</li>{{/each}}
+        </ul>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <section class="card">
+    <div class="card-header"><h3>Recent Attendance</h3></div>
+    <div class="table-wrap"><table class="data-table compact">
+      <thead><tr><th>Date</th><th>In</th><th>Out</th><th>Late</th><th>OT</th><th>Status</th></tr></thead>
+      <tbody>
+        {{#each attendance}}
+        <tr><td>{{date date}}</td><td>{{time time_in}}</td><td>{{time time_out}}</td><td>{{#if late_minutes}}{{late_minutes}}m{{else}}—{{/if}}</td><td>{{#if overtime_minutes}}{{hours overtime_minutes}}{{else}}—{{/if}}</td><td>{{badge status}}</td></tr>
+        {{else}}<tr><td colspan="6" class="table-empty">No attendance yet.</td></tr>{{/each}}
+      </tbody>
+    </table></div>
+  </section>
+  <section class="card">
+    <div class="card-header"><h3>Recent Payslips</h3></div>
+    <div class="table-wrap"><table class="data-table compact">
+      <thead><tr><th>Period</th><th>Status</th><th class="text-right">Net Pay</th><th></th></tr></thead>
+      <tbody>
+        {{#each payslips}}
+        <tr><td>{{date payroll.period_start "short"}} – {{date payroll.period_end}}</td><td>{{badge payroll.status "payroll"}}</td><td class="text-right">{{money net_salary}}</td><td class="text-right"><a href="/payslips/{{id}}" class="link">View</a></td></tr>
+        {{else}}<tr><td colspan="4" class="table-empty">No payroll records yet.</td></tr>{{/each}}
+      </tbody>
+    </table></div>
+  </section>
+</div>
+
+<div class="grid grid-2">
+  <section class="card">
+    <div class="card-header"><h3>Schedule History</h3></div>
+    <div class="table-wrap"><table class="data-table compact">
+      <thead><tr><th>Shift</th><th>Working days</th><th>From</th><th>To</th></tr></thead>
+      <tbody>
+        {{#each employee.schedules}}
+        <tr><td>{{shift.name}}</td><td>{{weekdays working_days}}</td><td>{{date effective_from}}</td><td>{{#if effective_to}}{{date effective_to}}{{else}}Ongoing{{/if}}</td></tr>
+        {{else}}<tr><td colspan="4" class="table-empty">No schedules assigned.</td></tr>{{/each}}
+      </tbody>
+    </table></div>
+  </section>
+  <section class="card">
+    <div class="card-header"><h3>Recent Leave Requests</h3><a href="/leaves/history/{{employee.id}}" class="link">Full history</a></div>
+    <div class="table-wrap"><table class="data-table compact">
+      <thead><tr><th>Type</th><th>Dates</th><th>Days</th><th>Status</th></tr></thead>
+      <tbody>
+        {{#each leaves}}
+        <tr><td>{{leaveType leave_type}}</td><td>{{date start_date "short"}} – {{date end_date}}</td><td>{{days}}</td><td>{{badge status "request"}}</td></tr>
+        {{else}}<tr><td colspan="4" class="table-empty">No leave requests.</td></tr>{{/each}}
+      </tbody>
+    </table></div>
+  </section>
+</div>
+
+{{#if me.isAdmin}}{{> employeeForm}}{{/if}}

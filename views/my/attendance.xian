@@ -1,0 +1,131 @@
+<div class="page-header">
+  <div>
+    <h1>Time Clock &amp; Attendance</h1>
+    <p class="text-muted">Time in / out, view your daily and monthly attendance, and request corrections</p>
+  </div>
+  <div class="page-actions">
+    <button type="button" class="btn btn-secondary" data-modal="#correction-modal" data-defaults="{{json (object date=today)}}">{{icon "file-pen" 16}}<span>Request Correction</span></button>
+  </div>
+</div>
+
+<div class="grid grid-3">
+  <section class="card">
+    <div class="card-header"><h3>Time Clock</h3></div>
+    {{> timeClock}}
+  </section>
+
+  <section class="card span-2">
+    <div class="card-header">
+      <h3>{{monthLabel}}</h3>
+      <div class="date-nav">
+        <div class="tabs-inline">
+          <a href="{{calendarUrl}}" class="{{active (eq view "calendar")}}">Calendar</a>
+          <a href="{{listUrl}}" class="{{active (eq view "list")}}">Daily list</a>
+        </div>
+        <a href="{{links.prev}}" class="btn btn-secondary btn-sm btn-icon" aria-label="Previous month">{{icon "chevron-left" 16}}</a>
+        <a href="{{links.next}}" class="btn btn-secondary btn-sm btn-icon" aria-label="Next month">{{icon "chevron-right" 16}}</a>
+      </div>
+    </div>
+
+    <div class="summary-pills">
+      <span class="summary-pill tone-success"><strong>{{summary.present}}</strong> on time</span>
+      <span class="summary-pill tone-warning"><strong>{{summary.late}}</strong> late ({{summary.late_minutes}}m)</span>
+      <span class="summary-pill tone-orange"><strong>{{summary.half_day}}</strong> half-day</span>
+      <span class="summary-pill tone-danger"><strong>{{summary.absent}}</strong> absent</span>
+      <span class="summary-pill tone-info"><strong>{{summary.on_leave}}</strong> on leave</span>
+      <span class="summary-pill tone-warning"><strong>{{summary.undertime_minutes}}m</strong> undertime</span>
+      <span class="summary-pill tone-navy"><strong>{{summary.overtime_hours}}h</strong> overtime</span>
+      <span class="summary-pill tone-navy"><strong>{{summary.hours_worked}}h</strong> worked</span>
+    </div>
+
+    {{#if (eq view "list")}}
+    <div class="table-wrap">
+      <table class="data-table compact">
+        <thead><tr><th>Date</th><th>Shift</th><th>In</th><th>Out</th><th>Late</th><th>Undertime</th><th>OT</th><th>Status</th></tr></thead>
+        <tbody>
+          {{#each listDays}}
+          <tr>
+            <td>{{date date "short"}} ({{date date "weekday"}})</td>
+            <td>{{default record.shift.name "—"}}</td>
+            <td>{{time record.time_in}}</td>
+            <td>{{time record.time_out}}</td>
+            <td>{{#if record.late_minutes}}{{record.late_minutes}}m{{else}}—{{/if}}</td>
+            <td>{{#if record.undertime_minutes}}{{record.undertime_minutes}}m{{else}}—{{/if}}</td>
+            <td>{{#if record.overtime_minutes}}{{hours record.overtime_minutes}} ({{record.overtime_status}}){{else}}—{{/if}}</td>
+            <td>{{badge record.status}}</td>
+          </tr>
+          {{else}}
+          <tr><td colspan="8" class="table-empty">No attendance records this month.</td></tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    {{else}}
+    <div class="month-calendar">
+      <div class="month-head">Mon</div><div class="month-head">Tue</div><div class="month-head">Wed</div><div class="month-head">Thu</div><div class="month-head">Fri</div><div class="month-head">Sat</div><div class="month-head">Sun</div>
+      {{#each cells}}
+        {{#if this}}
+        <button type="button" class="month-cell status-{{status}} {{#if isToday}}today{{/if}}" {{#if canCorrect}}data-modal="#correction-modal" data-defaults="{{json correction}}" title="Request a correction for this day"{{else}}disabled{{/if}}>
+          <span class="month-date">{{parseDay date}}</span>
+          <span class="month-content">
+            {{#if showBadge}}{{badge status}}{{/if}}
+            {{#if (eq status "rest_day")}}<small class="text-muted">Rest day</small>{{/if}}
+            {{#if (eq status "scheduled")}}{{#if shift}}<small class="text-muted">{{shortShift shift.name}}</small>{{/if}}{{/if}}
+            {{#if record.time_in}}<small>{{time record.time_in}} – {{time record.time_out}}</small>{{/if}}
+            {{#if holiday}}<small class="text-info">{{holiday}}</small>{{/if}}
+          </span>
+        </button>
+        {{else}}<div class="month-cell empty"></div>{{/if}}
+      {{/each}}
+    </div>
+    <p class="text-muted small mt-2">Tip: click a past day to request an attendance correction.</p>
+    {{/if}}
+  </section>
+</div>
+
+<section class="card">
+  <div class="card-header"><h3>My Attendance Summary</h3></div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Period</th><th class="text-right">Present</th><th class="text-right">Absent</th><th class="text-right">Late</th><th class="text-right">On Leave</th><th class="text-right">Overtime</th><th class="text-right">Hours Worked</th><th class="text-right">Avg / Day</th><th class="text-right">Attendance %</th></tr></thead>
+      <tbody>
+        {{#each summaries}}
+        <tr><td><strong>{{label}}</strong></td><td class="text-right">{{present}}</td><td class="text-right">{{absent}}</td><td class="text-right">{{late}}</td><td class="text-right">{{leave}}</td><td class="text-right">{{overtime_hours}} h</td><td class="text-right">{{hours_worked}} h</td><td class="text-right">{{avg_hours}} h</td><td class="text-right"><strong>{{pct rate}}</strong></td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <div class="card-header"><h3>My Correction Requests</h3></div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Date</th><th>Requested Time</th><th>Reason</th><th>Status</th><th>HR Remarks</th><th>Filed</th></tr></thead>
+      <tbody>
+        {{#each corrections}}
+        <tr>
+          <td>{{date date}}</td>
+          <td>{{time requested_time_in}} – {{time requested_time_out}}</td>
+          <td class="cell-wrap">{{reason}}</td>
+          <td>{{badge status "request"}}</td>
+          <td class="cell-wrap">{{default remarks "—"}}</td>
+          <td>{{datetime createdAt}}</td>
+        </tr>
+        {{else}}
+        <tr><td colspan="6" class="table-empty">You have not filed any correction requests.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{> pagination}}
+</section>
+
+{{#> modal id="correction-modal" title="Request Attendance Correction" action="/my/corrections" submit="Submit request" subtitle="HR will review your request and update your attendance."}}
+<div class="form-grid">
+  <label class="field span-2"><span class="field-label">Date <em>*</em></span><input class="input" type="date" name="date" max="{{@root.today}}" required></label>
+  <label class="field"><span class="field-label">Correct time in</span><input class="input" type="datetime-local" name="requested_time_in"></label>
+  <label class="field"><span class="field-label">Correct time out</span><input class="input" type="datetime-local" name="requested_time_out"></label>
+  <label class="field span-2"><span class="field-label">Reason <em>*</em></span><textarea class="input" name="reason" rows="3" required placeholder="e.g. I forgot to time out after my shift / the time clock did not register"></textarea></label>
+</div>
+{{/modal}}

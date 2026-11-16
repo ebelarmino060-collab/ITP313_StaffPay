@@ -1,0 +1,11 @@
+<div class="page-header">
+  <div>
+    <h1>{{#if (eq @root.title "Payslips")}}Payslips{{else}}Payroll Management{{/if}}</h1>
+    <p class="text-muted">Payroll is computed automatically from the imported attendance: absences are deducted and approved overtime is paid</p>
+  </div>
+</div>
+<nav class="subnav">
+  <a href="/payroll" class="{{active (eq tab "runs")}}">Payroll Periods</a>
+  <a href="/payslips" class="{{active (eq @root.title "Payslips")}}">Payslips</a>
+  <a href="/payroll/salary" class="{{active (eq tab "salary")}}">Allowances, Incentives &amp; Deductions</a>
+</nav>

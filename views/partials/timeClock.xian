@@ -1,0 +1,46 @@
+{{!-- Employee time in / time out widget. Expects `clock`. --}}
+<div class="time-clock">
+  <div class="time-clock-now">
+    <strong data-clock="time">&nbsp;</strong>
+    <span data-clock="date">&nbsp;</span>
+  </div>
+
+  <div class="time-clock-shift">
+    {{#if clock.holiday}}{{badge label=(concat "Holiday: " clock.holiday) tone="info"}}{{/if}}
+    {{#if clock.shift}}
+      <span>Today's shift: <strong>{{clock.shift.name}}</strong> ({{time clock.scheduledIn}} – {{time clock.scheduledOut}})</span>
+    {{else}}
+      <span class="text-muted">No shift scheduled today (rest day)</span>
+    {{/if}}
+  </div>
+
+  <div class="time-clock-stats">
+    <div><span>Time in</span><strong>{{time clock.record.time_in}}</strong></div>
+    <div><span>Time out</span><strong>{{time clock.record.time_out}}</strong></div>
+    <div>
+      <span>{{#if clock.isTimedIn}}On duty{{else}}Worked{{/if}}</span>
+      {{#if clock.isTimedIn}}<strong data-elapsed-since="{{datetimeStr clock.record.time_in}}">…</strong>{{else}}<strong>{{hours clock.record.worked_minutes}}</strong>{{/if}}
+    </div>
+    <div><span>Status</span>{{#if clock.record}}{{badge clock.record.status}}{{else}}<strong>—</strong>{{/if}}</div>
+  </div>
+
+  {{#if (gt clock.record.late_minutes 0)}}<p class="text-warning small">Late by {{clock.record.late_minutes}} minute(s).</p>{{/if}}
+  {{#if (gt clock.record.undertime_minutes 0)}}<p class="text-warning small">Undertime: {{clock.record.undertime_minutes}} minute(s).</p>{{/if}}
+  {{#if (gt clock.record.overtime_minutes 0)}}<p class="text-info small">Overtime: {{hours clock.record.overtime_minutes}} ({{clock.record.overtime_status}}).</p>{{/if}}
+
+  <div class="time-clock-actions">
+    {{#if clock.isTimedIn}}
+      <form method="post" action="/my/attendance/time-out" class="btn-block">{{> csrf}}
+        <button type="submit" class="btn btn-danger btn-lg btn-block">{{icon "log-out"}}<span>Time Out</span></button>
+      </form>
+    {{else if clock.done}}
+      <p class="text-success">You have completed today's attendance. Thank you!</p>
+    {{else if clock.onLeave}}
+      <p class="text-info">You are on approved leave today.</p>
+    {{else}}
+      <form method="post" action="/my/attendance/time-in" class="btn-block">{{> csrf}}
+        <button type="submit" class="btn btn-success btn-lg btn-block">{{icon "log-in"}}<span>Time In</span></button>
+      </form>
+    {{/if}}
+  </div>
+</div>

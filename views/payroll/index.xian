@@ -1,0 +1,40 @@
+{{> payrollNav}}
+
+<div class="card">
+  <form class="filter-bar" method="get" action="/payroll" data-autosubmit>
+    <select class="input" name="year">{{options years year}}</select>
+    <select class="input" name="status">{{options opts.payrollStatus filters.status placeholder="All statuses"}}</select>
+    <div class="filter-actions">
+      <button type="button" class="btn btn-primary" data-modal="#payroll-modal" data-title="New Payroll Period" data-action="/payroll" data-defaults="{{json suggestion}}">{{icon "plus" 16}}<span>New Payroll Period</span></button>
+    </div>
+  </form>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Reference</th><th>Pay Period</th><th>Pay Date</th><th class="text-right">Employees</th><th class="text-right">Gross</th><th class="text-right">Deductions</th><th class="text-right">Net Pay</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {{#each payrolls}}
+        <tr>
+          <td><a href="/payroll/{{id}}" class="link"><strong>{{reference}}</strong></a></td>
+          <td>{{date period_start "short"}} – {{date period_end}}</td>
+          <td>{{date pay_date}}</td>
+          <td class="text-right">{{employee_count}}</td>
+          <td class="text-right">{{money total_gross}}</td>
+          <td class="text-right">{{money total_deductions}}</td>
+          <td class="text-right"><strong>{{money total_net}}</strong></td>
+          <td>{{badge status "payroll"}}</td>
+          <td class="text-right"><div class="row-actions">
+            <a href="/payroll/{{id}}" class="btn btn-ghost btn-sm btn-icon" title="Open">{{icon "eye" 16}}</a>
+            {{#if is_editable}}{{> deleteButton action=(concat "/payroll/" id "/delete") message=(concat "Delete payroll " reference " and all its computed lines?")}}{{/if}}
+          </div></td>
+        </tr>
+        {{else}}
+        <tr><td colspan="9" class="table-empty">{{icon "inbox" 28}}<div>No payroll periods yet. Create one to get started.</div></td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{> pagination}}
+</div>
+
+{{> payrollForm}}

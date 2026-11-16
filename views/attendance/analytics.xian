@@ -1,0 +1,63 @@
+{{> attendanceNav}}
+
+<div class="card">
+  <form class="filter-bar" method="get" action="/attendance/analytics" data-autosubmit>
+    <input type="hidden" name="view" value="{{view}}">
+    <div class="tabs-inline">{{#each views}}<a href="{{url}}" class="{{active active}}">{{label}}</a>{{/each}}</div>
+    {{#if (eq view "weekly")}}<input class="input" type="date" name="date" value="{{filters.date}}" title="Any day in the week">{{/if}}
+    {{#if (eq view "monthly")}}<input class="input" type="month" name="month" value="{{filters.month}}">{{/if}}
+    {{#if (eq view "yearly")}}<select class="input" name="year">{{options years filters.year}}</select>{{/if}}
+    {{#if (eq view "custom")}}
+      <input class="input" type="date" name="from" value="{{filters.from}}" title="From">
+      <input class="input" type="date" name="to" value="{{filters.to}}" title="To">
+    {{/if}}
+    <select class="input" name="department_id">{{options departments filters.department_id placeholder="All departments" value="id" label="name"}}</select>
+    <select class="input" name="employee_id">{{options employees filters.employee_id placeholder="All employees" value="id" label="option_label"}}</select>
+    <div class="date-nav">
+      {{#if prevUrl}}<a href="{{prevUrl}}" class="btn btn-secondary btn-sm btn-icon" aria-label="Previous">{{icon "chevron-left" 16}}</a>{{/if}}
+      <strong>{{result.range.label}}</strong>
+      {{#if nextUrl}}<a href="{{nextUrl}}" class="btn btn-secondary btn-sm btn-icon" aria-label="Next">{{icon "chevron-right" 16}}</a>{{/if}}
+    </div>
+  </form>
+
+  <div class="stat-grid stat-grid-4">
+    {{#each result.cards}}
+    <div class="stat-card"><div class="stat-icon tone-{{tone}}">{{icon this.icon 22}}</div><div class="stat-content"><span class="stat-label">{{label}}</span><strong class="stat-value">{{value}}</strong></div></div>
+    {{/each}}
+  </div>
+</div>
+
+<div class="grid grid-3">
+  <section class="card span-2">
+    <div class="card-header"><div><h3>{{#if (eq view "weekly")}}Attendance by Day of the Week{{else if (eq view "yearly")}}Monthly Present vs Absent ({{result.range.year}}){{else}}Daily Attendance Trend{{/if}}</h3><p class="text-muted">{{result.range.label}}</p></div></div>
+    {{> chart id="trend" config=result.charts.trend height=300}}
+  </section>
+  <section class="card">
+    <div class="card-header"><h3>Attendance Status Mix</h3></div>
+    {{> chart id="pie" config=result.charts.statusPie height=300}}
+  </section>
+</div>
+
+<div class="grid grid-2">
+  <section class="card">
+    <div class="card-header"><h3>Department Attendance %</h3></div>
+    {{> chart id="dept" config=result.charts.departments height=260}}
+  </section>
+  <section class="card">
+    <div class="card-header"><h3>Top Overtime (hours)</h3></div>
+    {{#if result.charts.overtime.labels.length}}{{> chart id="ot" config=result.charts.overtime height=260}}{{else}}<p class="text-muted">No overtime in this period.</p>{{/if}}
+  </section>
+</div>
+
+{{#each exportLinks}}
+<section class="card">
+  <div class="card-header">
+    <h3>{{title}}</h3>
+    <div class="card-actions">
+      <a href="{{pdf}}" class="btn btn-secondary btn-sm">{{icon "file-text" 14}}<span>PDF</span></a>
+      <a href="{{xlsx}}" class="btn btn-secondary btn-sm">{{icon "download" 14}}<span>Excel</span></a>
+    </div>
+  </div>
+  {{> analyticsTable table=(lookup @root.result.tables this.table)}}
+</section>
+{{/each}}

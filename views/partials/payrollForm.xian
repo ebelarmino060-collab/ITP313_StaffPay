@@ -1,0 +1,8 @@
+{{#> modal id="payroll-modal" title="New Payroll Period" action="/payroll" subtitle="The next period is suggested from your pay frequency setting."}}
+<div class="form-grid">
+  <label class="field"><span class="field-label">Period start <em>*</em></span><input class="input" type="date" name="period_start" required></label>
+  <label class="field"><span class="field-label">Period end <em>*</em></span><input class="input" type="date" name="period_end" required></label>
+  <label class="field"><span class="field-label">Pay date <em>*</em></span><input class="input" type="date" name="pay_date" required></label>
+  <label class="field span-2"><span class="field-label">Notes</span><textarea class="input" name="notes" rows="2"></textarea></label>
+</div>
+{{/modal}}

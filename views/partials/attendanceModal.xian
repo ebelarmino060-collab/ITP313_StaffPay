@@ -1,0 +1,14 @@
+{{!-- Manual attendance entry / edit (HR & admin). Needs `employees`. --}}
+{{#> modal id="attendance-modal" title="Record Attendance" action="/attendance" subtitle="Manual entry for a missed time in / time out"}}
+<div class="form-grid">
+  <label class="field span-2" data-show-when-new><span class="field-label">Employee <em>*</em></span>
+    <select class="input" name="employee_id">{{options @root.employees placeholder="Select employee…" value="id" label="option_label"}}</select></label>
+  <label class="field span-2" data-show-when-new><span class="field-label">Date <em>*</em></span><input class="input" type="date" name="date"></label>
+  <label class="field"><span class="field-label">Time in</span><input class="input" type="datetime-local" name="time_in"></label>
+  <label class="field"><span class="field-label">Time out</span><input class="input" type="datetime-local" name="time_out"></label>
+  <label class="field span-2"><span class="field-label">Status when there is no time in</span>
+    <select class="input" name="status"><option value="absent">Absent</option><option value="rest_day">Rest Day</option><option value="on_leave">On Leave</option></select></label>
+  <label class="field span-2"><span class="field-label">Remarks</span><textarea class="input" name="remarks" rows="2"></textarea></label>
+  <div class="span-2"><div class="alert alert-info">Late, undertime, overtime and night differential are recalculated automatically from the employee's shift.</div></div>
+</div>
+{{/modal}}

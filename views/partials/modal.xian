@@ -1,0 +1,28 @@
+{{!--
+  Reusable modal form.
+  {{#> modal id="employee-modal" title="Add Employee" action="/employees" size="lg" submit="Save" multipart=true}}
+    ...form fields...
+  {{/modal}}
+  Open with: <button data-modal="#employee-modal" data-record="{{json record}}" data-action="/employees/1" data-title="Edit">
+--}}
+<div class="modal-backdrop" id="{{id}}" hidden>
+  <div class="modal modal-{{default size "md"}}" role="dialog" aria-modal="true">
+    <form method="post" action="{{action}}" class="modal-form" data-modal-form {{#if multipart}}enctype="multipart/form-data"{{/if}} novalidate>
+      <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+      <div class="modal-header">
+        <div>
+          <h3 data-modal-title data-default="{{title}}">{{title}}</h3>
+          {{#if subtitle}}<p class="text-muted" data-modal-subtitle>{{subtitle}}</p>{{else}}<p class="text-muted" data-modal-subtitle></p>{{/if}}
+        </div>
+        <button type="button" class="icon-button" data-close aria-label="Close">{{icon "x"}}</button>
+      </div>
+      <div class="modal-body">
+        {{> @partial-block}}
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-close>Cancel</button>
+        {{#unless readonly}}<button type="submit" class="btn btn-{{default tone "primary"}}" data-submit-label>{{default submit "Save"}}</button>{{/unless}}
+      </div>
+    </form>
+  </div>
+</div>

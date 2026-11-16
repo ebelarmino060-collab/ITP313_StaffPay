@@ -1,0 +1,61 @@
+{{> attendanceNav}}
+
+<div class="card">
+  <form class="filter-bar" method="get" action="/attendance/records" data-autosubmit>
+    <input class="input" type="date" name="from" value="{{filters.from}}" title="From">
+    <input class="input" type="date" name="to" value="{{filters.to}}" title="To">
+    <select class="input" name="department_id">{{options departments filters.department_id placeholder="All departments" value="id" label="name"}}</select>
+    <select class="input" name="status">{{options opts.attendanceStatus filters.status placeholder="All statuses"}}</select>
+    <select class="input" name="flag">
+      <option value="">Any flag</option>
+      <option value="late" {{selected filters.flag "late"}}>Late arrivals</option>
+      <option value="undertime" {{selected filters.flag "undertime"}}>Early time-out / undertime</option>
+      <option value="overtime" {{selected filters.flag "overtime"}}>With overtime</option>
+    </select>
+    <select class="input" name="source">
+      <option value="">Any source</option>
+      <option value="import" {{selected filters.source "import"}}>TXT import</option>
+      <option value="time_clock" {{selected filters.source "time_clock"}}>Time clock</option>
+      <option value="manual" {{selected filters.source "manual"}}>Manual entry</option>
+      <option value="correction" {{selected filters.source "correction"}}>Correction</option>
+      <option value="system" {{selected filters.source "system"}}>System (absence / leave)</option>
+    </select>
+    <div class="search-input">{{icon "search" 16}}<input class="input" type="search" name="search" value="{{filters.search}}" placeholder="Search employee…"></div>
+    <div class="filter-actions">
+      <button type="button" class="btn btn-primary" data-modal="#attendance-modal" data-title="Record Attendance" data-action="/attendance">{{icon "plus" 16}}<span>Manual Entry</span></button>
+    </div>
+  </form>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Date</th><th>Employee</th><th>Shift</th><th>Time In</th><th>Time Out</th><th>Worked</th><th>Late</th><th>Undertime</th><th>OT</th><th>Night Diff</th><th>Status</th><th>Source</th><th></th></tr></thead>
+      <tbody>
+        {{#each records}}
+        <tr>
+          <td>{{date date}}</td>
+          <td><div class="person-cell">{{avatar employee.full_name employee.photo_url 34}}<div><strong>{{employee.full_name}}</strong><span class="text-muted">{{employee.employee_code}} · {{employee.department.name}}</span></div></div></td>
+          <td>{{#if shift}}{{shift.name}}{{else}}<span class="text-muted">Unscheduled</span>{{/if}}</td>
+          <td>{{time time_in}}</td>
+          <td>{{time time_out}}</td>
+          <td>{{hours worked_minutes}}</td>
+          <td>{{#if late_minutes}}<span class="text-warning">{{late_minutes}}m</span>{{else}}—{{/if}}</td>
+          <td>{{#if undertime_minutes}}<span class="text-warning">{{undertime_minutes}}m</span>{{else}}—{{/if}}</td>
+          <td>{{#if overtime_minutes}}{{hours overtime_minutes}} ({{overtime_status}}){{else}}—{{/if}}</td>
+          <td>{{#if night_diff_minutes}}{{hours night_diff_minutes}}{{else}}—{{/if}}</td>
+          <td>{{badge status}}{{#if is_holiday}}{{badge label="Holiday" tone="info"}}{{/if}}</td>
+          <td class="small">{{#if import_id}}<a href="/attendance/import/{{import_id}}" class="link">TXT import #{{import_id}}</a>{{else}}{{titleCase source}}{{/if}}</td>
+          <td class="text-right"><div class="row-actions">
+            <button type="button" class="btn btn-ghost btn-sm btn-icon" title="Edit" data-modal="#attendance-modal" data-title="Edit Attendance" data-subtitle="{{employee.full_name}} · {{date date}}" data-action="/attendance/{{id}}/update" data-record="{{json this}}">{{icon "pencil" 16}}</button>
+            {{> deleteButton action=(concat "/attendance/" id "/delete") message=(concat "Delete the attendance record of " employee.full_name " on " (date date) "?")}}
+          </div></td>
+        </tr>
+        {{else}}
+        <tr><td colspan="13" class="table-empty">{{icon "inbox" 28}}<div>No attendance records for this filter.</div></td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{> pagination}}
+</div>
+
+{{> attendanceModal}}

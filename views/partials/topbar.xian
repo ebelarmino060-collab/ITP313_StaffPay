@@ -1,0 +1,40 @@
+<header class="topbar">
+  <button type="button" class="icon-button menu-toggle" data-sidebar-open aria-label="Open menu">{{icon "menu" 22}}</button>
+  <div class="topbar-clock">
+    <strong data-clock="time">&nbsp;</strong>
+    <span data-clock="date">&nbsp;</span>
+  </div>
+  <div class="topbar-right">
+    <div class="dropdown" data-dropdown data-notifications>
+      <button type="button" class="icon-button topbar-icon" data-dropdown-toggle aria-label="Notifications">
+        {{icon "bell" 20}}
+        <span class="dot-count" data-unread {{#unless unreadCount}}hidden{{/unless}}>{{unreadCount}}</span>
+      </button>
+      <div class="dropdown-menu notifications-menu">
+        <div class="dropdown-header">
+          <strong>Notifications</strong>
+          <button type="button" class="link-button" data-mark-all>{{icon "check-check" 14}} Mark all read</button>
+        </div>
+        <div class="notifications-list" data-notification-list>
+          <p class="text-muted notifications-empty">Loading…</p>
+        </div>
+      </div>
+    </div>
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="user-chip" data-dropdown-toggle>
+        {{avatar me.name me.employee.photo_url 34}}
+        <span class="user-chip-text"><strong>{{me.name}}</strong><span>{{me.roleLabel}}</span></span>
+        {{icon "chevron-down" 16}}
+      </button>
+      <div class="dropdown-menu user-menu">
+        <div class="dropdown-header"><div><strong>{{me.name}}</strong><span class="text-muted">{{me.email}}</span></div></div>
+        <a href="/profile" class="dropdown-item">{{icon "circle-user" 16}} My Profile</a>
+        <a href="/profile#password" class="dropdown-item">{{icon "key-round" 16}} Change Password</a>
+        <form method="post" action="/logout">
+          <input type="hidden" name="_csrf" value="{{csrfToken}}">
+          <button type="submit" class="dropdown-item danger">{{icon "log-out" 16}} Sign out</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</header>

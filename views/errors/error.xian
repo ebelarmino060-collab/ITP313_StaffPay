@@ -1,0 +1,6 @@
+<div class="state-box">
+  {{#if (eq code 404)}}{{icon "triangle-alert" 34}}{{else if (eq code 403)}}{{icon "shield-check" 34}}{{else}}{{icon "circle-x" 34}}{{/if}}
+  <h4>{{title}}</h4>
+  <p>{{message}}</p>
+  <a href="/" class="btn btn-primary">{{icon "arrow-left" 16}}<span>Back to dashboard</span></a>
+</div>

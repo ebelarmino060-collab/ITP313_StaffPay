@@ -1,0 +1,6 @@
+# StaffPay attendance TXT format (header row is optional; lines starting with # are ignored)
+EMPLOYEE_ID,DATE,TIME,STATUS
+EMP001,2026-11-12,08:00:00,IN
+EMP001,2026-11-12,17:30:00,OUT
+EMP002,2026-11-12,08:15:00,IN
+EMP002,2026-11-12,18:00:00,OUT

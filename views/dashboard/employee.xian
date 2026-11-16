@@ -1,0 +1,64 @@
+{{#if noEmployee}}
+<div class="state-box">{{icon "inbox" 30}}<h4>No employee profile</h4><p>Your account is not linked to an employee record. Please contact HR.</p></div>
+{{else}}
+<div class="page-header">
+  <div>
+    <h1>Welcome, {{employee.full_name}}</h1>
+    <p class="text-muted">{{default employee.position.title "Employee"}} · {{employee.department.name}} · {{employee.employee_code}}</p>
+  </div>
+</div>
+
+<div class="grid grid-3">
+  <section class="card">
+    <div class="card-header"><h3>Time Clock</h3></div>
+    {{> timeClock}}
+  </section>
+
+  <div class="span-2 stack">
+    <div class="stat-grid stat-grid-4">
+      <a href="/my/attendance" class="stat-card clickable"><div class="stat-icon tone-green">{{icon "user-check" 22}}</div><div class="stat-content"><span class="stat-label">Days Present (this month)</span><strong class="stat-value">{{month.present}}</strong></div></a>
+      <a href="/my/attendance" class="stat-card clickable"><div class="stat-icon tone-amber">{{icon "clock" 22}}</div><div class="stat-content"><span class="stat-label">Late Arrivals</span><strong class="stat-value">{{month.late}}</strong><span class="stat-hint">{{month.late_minutes}} minutes total</span></div></a>
+      <a href="/my/attendance" class="stat-card clickable"><div class="stat-icon tone-red">{{icon "user-x" 22}}</div><div class="stat-content"><span class="stat-label">Absences</span><strong class="stat-value">{{month.absent}}</strong></div></a>
+      <a href="/my/attendance" class="stat-card clickable"><div class="stat-icon tone-sky">{{icon "timer" 22}}</div><div class="stat-content"><span class="stat-label">Overtime Hours</span><strong class="stat-value">{{month.overtime_hours}}</strong><span class="stat-hint">{{month.hours_worked}} hours worked</span></div></a>
+    </div>
+
+    <section class="card">
+      <div class="card-header"><h3>My Schedule – Next 7 Days</h3><a href="/my/schedule" class="link">Full schedule</a></div>
+      {{> weekStrip days=week}}
+    </section>
+  </div>
+</div>
+
+<div class="grid grid-2">
+  <section class="card">
+    <div class="card-header"><h3>Leave Balances</h3><a href="/my/leaves" class="link">File a leave</a></div>
+    <div class="balance-row">
+      {{#each balances}}
+      <div class="balance-pill"><span>{{leaveType leave_type}}</span><strong>{{remaining}}</strong><small>of {{allocated}} days left</small></div>
+      {{/each}}
+    </div>
+    {{#if pendingLeaves}}<p class="text-muted mt-2">{{icon "plane-takeoff" 14}} {{pendingLeaves}} leave request(s) awaiting approval.</p>{{/if}}
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h3>Latest Payslip</h3><a href="/my/payslips" class="link">All payslips</a></div>
+    {{#if latestPayslip}}
+    <div class="payslip-mini">
+      <div>
+        <span class="text-muted">Pay period</span>
+        <strong>{{date latestPayslip.payroll.period_start "short"}} – {{date latestPayslip.payroll.period_end}}</strong>
+        {{badge latestPayslip.payroll.status "payroll"}}
+      </div>
+      <div class="payslip-mini-figures">
+        <div><span>Gross</span><strong>{{money latestPayslip.gross_salary}}</strong></div>
+        <div><span>Deductions</span><strong>{{money latestPayslip.total_deductions}}</strong></div>
+        <div class="net"><span>Net Pay</span><strong>{{money latestPayslip.net_salary}}</strong></div>
+      </div>
+      <a href="/my/payslips/{{latestPayslip.id}}" class="btn btn-secondary btn-sm">{{icon "receipt" 14}}<span>View payslip</span></a>
+    </div>
+    {{else}}
+    <p class="text-muted">{{icon "calendar-clock" 14}} No payslips released yet.</p>
+    {{/if}}
+  </section>
+</div>
+{{/if}}

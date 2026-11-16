@@ -1,0 +1,45 @@
+<div class="page-header">
+  <div>
+    <h1>Reports &amp; Analytics</h1>
+    <p class="text-muted">Attendance, leave and payroll reports with export to PDF and Excel</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{exportPdf}}" class="btn btn-secondary">{{icon "file-text" 16}}<span>Export PDF</span></a>
+    <a href="{{exportXlsx}}" class="btn btn-primary">{{icon "download" 16}}<span>Export Excel</span></a>
+  </div>
+</div>
+
+<div class="report-types">
+  {{#each types}}<a href="{{url}}" class="{{active active}}"><small>{{group}}</small><strong>{{label}}</strong></a>{{/each}}
+</div>
+
+<div class="card">
+  <form class="filter-bar" method="get" action="/reports" data-autosubmit>
+    <input type="hidden" name="type" value="{{filters.type}}">
+    {{#if isAnnual}}
+      <select class="input" name="year">{{options years filters.year}}</select>
+    {{else}}
+      <select class="input" name="preset">{{options presets filters.preset}}</select>
+      <input class="input" type="date" name="from" value="{{filters.from}}" onchange="this.form.preset.value='custom'">
+      <input class="input" type="date" name="to" value="{{filters.to}}" onchange="this.form.preset.value='custom'">
+    {{/if}}
+    <select class="input" name="department_id">{{options departments filters.department_id placeholder="All departments" value="id" label="name"}}</select>
+    <select class="input" name="employee_id">{{options employees filters.employee_id placeholder="All employees" value="id" label="option_label"}}</select>
+  </form>
+
+  <div class="report-head">
+    <div>
+      <h2>{{report.title}}</h2>
+      <p class="text-muted">{{report.subtitle}} · generated {{datetime report.generated_at}}</p>
+    </div>
+    <div class="summary-pills">
+      {{#each report.summary}}<span class="summary-pill tone-navy"><strong>{{#if (eq type "money")}}{{money value}}{{else}}{{value}}{{/if}}</strong> {{label}}</span>{{/each}}
+    </div>
+  </div>
+
+  {{#if report.chart.labels.length}}
+  <section class="card chart-card">{{> chart id="report" config=report.chart height=280}}</section>
+  {{/if}}
+
+  {{> reportTable}}
+</div>

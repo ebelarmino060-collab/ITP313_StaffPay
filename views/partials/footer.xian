@@ -1,0 +1,31 @@
+<div class="toast-stack" role="status" aria-live="polite">
+  {{#each success_msg}}
+  <div class="toast toast-success" data-toast>{{icon "circle-check"}}<span>{{this}}</span><button type="button" class="toast-close" data-toast-close aria-label="Dismiss">{{icon "x" 14}}</button></div>
+  {{/each}}
+  {{#each error_msg}}
+  <div class="toast toast-error" data-toast>{{icon "circle-x"}}<span>{{this}}</span><button type="button" class="toast-close" data-toast-close aria-label="Dismiss">{{icon "x" 14}}</button></div>
+  {{/each}}
+</div>
+
+<div class="modal-backdrop" id="confirm-dialog" hidden>
+  <div class="modal modal-sm" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <h3 data-confirm-title>Are you sure?</h3>
+      <button type="button" class="icon-button" data-close aria-label="Close">{{icon "x"}}</button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-body">
+        <div class="confirm-icon tone-danger">{{icon "triangle-alert" 22}}</div>
+        <div data-confirm-message></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-close>Cancel</button>
+      <button type="button" class="btn btn-danger" data-confirm-ok>Confirm</button>
+    </div>
+  </div>
+</div>
+
+{{#if formState}}<script type="application/json" id="form-state">{{jsonScript formState}}</script>{{/if}}
+{{#if useCharts}}<script src="/vendor/chart.js/chart.umd.js"></script>{{/if}}
+<script src="/js/app.js"></script>

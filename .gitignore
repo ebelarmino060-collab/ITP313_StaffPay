@@ -1,0 +1,6 @@
+node_modules/
+.env
+*.sqlite
+public/uploads/**
+!public/uploads/photos/.gitkeep
+!public/uploads/branding/.gitkeep

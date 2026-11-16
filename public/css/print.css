@@ -1,0 +1,43 @@
+/* Printing: only the main content (e.g. a payslip) is printed. */
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  body {
+    background: #fff;
+    font-size: 12px;
+  }
+
+  .sidebar,
+  .sidebar-overlay,
+  .topbar,
+  .no-print,
+  .toast-stack,
+  .page-actions,
+  .subnav,
+  .filter-bar {
+    display: none !important;
+  }
+
+  .app-main { margin: 0; }
+  .app-content { padding: 0; max-width: none; animation: none; }
+
+  .payslip {
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    max-width: none;
+  }
+
+  .payslip-net,
+  .payslip-attendance,
+  .payslip-title strong,
+  .payslip-columns th {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .card { box-shadow: none; break-inside: avoid; }
+}

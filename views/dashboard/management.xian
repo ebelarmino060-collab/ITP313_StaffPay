@@ -1,0 +1,86 @@
+<div class="page-header">
+  <div>
+    <h1>Good {{greeting}}, {{firstName}}</h1>
+    <p class="text-muted">{{me.roleLabel}} dashboard · <span data-clock="date"></span></p>
+  </div>
+  <div class="page-actions">
+    <a href="/attendance/import" class="btn btn-primary">{{icon "upload" 16}}<span>Import Attendance TXT</span></a>
+    <a href="/" class="btn btn-secondary">{{icon "refresh-cw" 16}}<span>Refresh</span></a>
+  </div>
+</div>
+
+<div class="import-steps">
+  <span>1 · Upload TXT</span><span>2 · Employees identified by ID</span><span>3 · Validate &amp; import</span>
+  <span>4 · Analytics</span><span>5 · Payroll deducts absences &amp; pays overtime</span><span>6 · PDF payslips (single or ZIP)</span>
+  {{#if lastImport}}<span class="text-muted">Last import: <a href="/attendance/import/{{lastImport.id}}" class="link">{{lastImport.file_name}}</a> · {{datetime lastImport.committed_at}} · {{lastImport.records_imported}} record(s)</span>{{else}}<span class="text-muted">No TXT imported yet</span>{{/if}}
+</div>
+
+<div class="stat-grid">
+  <a href="/employees" class="stat-card clickable"><div class="stat-icon tone-navy">{{icon "users" 22}}</div><div class="stat-content"><span class="stat-label">Total Employees</span><strong class="stat-value">{{stats.total_employees}}</strong></div></a>
+  <a href="/attendance" class="stat-card clickable"><div class="stat-icon tone-green">{{icon "user-check" 22}}</div><div class="stat-content"><span class="stat-label">Present Today</span><strong class="stat-value">{{stats.present_today}}</strong><span class="stat-hint">{{#if stats.awaiting_today}}{{stats.awaiting_today}} not yet timed in{{else}}Everyone scheduled has reported{{/if}}</span></div></a>
+  <a href="/attendance?status=absent" class="stat-card clickable"><div class="stat-icon tone-red">{{icon "user-x" 22}}</div><div class="stat-content"><span class="stat-label">Absent Today</span><strong class="stat-value">{{stats.absent_today}}</strong></div></a>
+  <a href="/attendance?status=late" class="stat-card clickable"><div class="stat-icon tone-amber">{{icon "clock" 22}}</div><div class="stat-content"><span class="stat-label">Late Today</span><strong class="stat-value">{{stats.late_today}}</strong></div></a>
+  <a href="/attendance/analytics" class="stat-card clickable"><div class="stat-icon tone-blue">{{icon "timer" 22}}</div><div class="stat-content"><span class="stat-label">Total Overtime Hours</span><strong class="stat-value">{{stats.overtime_hours_month}}</strong><span class="stat-hint">this month</span></div></a>
+  <a href="{{#if currentPayroll}}/payroll/{{currentPayroll.id}}{{else}}/payroll{{/if}}" class="stat-card clickable"><div class="stat-icon tone-navy">{{icon "wallet" 22}}</div><div class="stat-content"><span class="stat-label">Current Period Payroll</span><strong class="stat-value">{{#if currentPayroll}}{{#if (eq currentPayroll.status "draft")}}Not calculated{{else}}{{money currentPayroll.total_net}}{{/if}}{{else}}—{{/if}}</strong><span class="stat-hint">{{#if currentPayroll}}{{date currentPayroll.period_start "short"}} – {{date currentPayroll.period_end}} · {{titleCase currentPayroll.status}}{{else}}No payroll yet{{/if}}</span></div></a>
+  <a href="/reports?type=payroll_annual" class="stat-card clickable"><div class="stat-icon tone-green">{{icon "banknote" 22}}</div><div class="stat-content"><span class="stat-label">Total Payroll Expenses</span><strong class="stat-value">{{money stats.payroll_expenses_year}}</strong><span class="stat-hint">finalized gross pay, {{date today "year"}}</span></div></a>
+  <a href="/attendance?status=on_leave" class="stat-card clickable"><div class="stat-icon tone-sky">{{icon "plane-takeoff" 22}}</div><div class="stat-content"><span class="stat-label">On Leave Today</span><strong class="stat-value">{{stats.on_leave_today}}</strong></div></a>
+  <a href="/leaves" class="stat-card clickable"><div class="stat-icon tone-amber">{{icon "clipboard-list" 22}}</div><div class="stat-content"><span class="stat-label">Pending Leave Requests</span><strong class="stat-value">{{stats.pending_leaves}}</strong></div></a>
+  <a href="/attendance/overtime" class="stat-card clickable"><div class="stat-icon tone-sky">{{icon "hourglass" 22}}</div><div class="stat-content"><span class="stat-label">Pending Overtime / Corrections</span><strong class="stat-value">{{stats.pending_overtime}} / {{stats.pending_corrections}}</strong></div></a>
+</div>
+
+<div class="grid grid-3">
+  <section class="card span-2">
+    <div class="card-header"><h3>Attendance – Last 7 Days</h3></div>
+    {{> chart id="weekly" config=charts.weekly height=280}}
+  </section>
+  <section class="card">
+    <div class="card-header"><h3>Employees by Department</h3></div>
+    {{> chart id="departments" config=charts.departments height=280}}
+  </section>
+</div>
+
+<div class="grid grid-3">
+  <section class="card span-2">
+    <div class="card-header"><div><h3>Payroll Trend</h3><p class="text-muted">Last 6 pay periods</p></div></div>
+    {{> chart id="payroll" config=charts.payroll height=260}}
+  </section>
+  <section class="card">
+    <div class="card-header"><h3>Recent Attendance Activity</h3><a href="/attendance/records" class="link">View all</a></div>
+    <ul class="activity-list">
+      {{#each recent}}
+      <li>
+        <div class="person-cell">{{avatar employee photo_url 34}}<div><strong>{{employee}}</strong><span class="text-muted">{{action}} · {{time this.time}}</span></div></div>
+        {{badge status}}
+      </li>
+      {{else}}
+      <li class="text-muted">No activity yet today.</li>
+      {{/each}}
+    </ul>
+  </section>
+</div>
+
+<div class="grid grid-2">
+  <section class="card">
+    <div class="card-header"><h3>Pending Leave Requests</h3><a href="/leaves" class="link">Review</a></div>
+    <ul class="activity-list">
+      {{#each pendingLeaves}}
+      <li>
+        <div class="person-cell">{{avatar employee.full_name employee.photo_url 34}}<div><strong>{{employee.full_name}}</strong><span class="text-muted">{{leaveType leave_type}} · {{date start_date "short"}} – {{date end_date}}</span></div></div>
+        <strong>{{days}} day(s)</strong>
+      </li>
+      {{else}}
+      <li class="text-muted">No pending leave requests.</li>
+      {{/each}}
+    </ul>
+  </section>
+  {{#if recentAudit}}
+  <section class="card">
+    <div class="card-header"><h3>Recent Administrative Actions</h3><a href="/audit-logs" class="link">Audit logs</a></div>
+    <ul class="activity-list">
+      {{#each recentAudit}}
+      <li><div><strong>{{description}}</strong><span class="text-muted d-block">{{default user.name "System"}} · {{datetime createdAt}}</span></div></li>
+      {{/each}}
+    </ul>
+  </section>
+  {{/if}}
+</div>

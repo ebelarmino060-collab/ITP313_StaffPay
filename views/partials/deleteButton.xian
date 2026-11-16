@@ -1,0 +1,5 @@
+{{!-- {{> deleteButton action="/employees/1/delete" message="Delete this employee?" label="Delete"}} --}}
+<form method="post" action="{{action}}" class="inline-form" data-confirm="{{message}}" data-confirm-title="{{default confirmTitle "Are you sure?"}}" data-confirm-label="{{default confirmLabel "Delete"}}">
+  <input type="hidden" name="_csrf" value="{{@root.csrfToken}}">
+  <button type="submit" class="btn btn-ghost btn-sm {{#unless label}}btn-icon{{/unless}} text-danger" title="{{default title "Delete"}}">{{icon "trash-2" 16}}{{#if label}}<span>{{label}}</span>{{/if}}</button>
+</form>

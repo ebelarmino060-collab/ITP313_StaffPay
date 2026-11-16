@@ -1,0 +1,15 @@
+<div class="page-header">
+  <div>
+    <h1>{{#if (eq tab "import")}}Import Attendance{{else if (eq tab "analytics")}}Attendance Analytics{{else}}Attendance Management{{/if}}</h1>
+    <p class="text-muted">{{#if (eq tab "import")}}Upload the time-clock / biometric TXT file – employees are identified automatically by Employee ID{{else if (eq tab "analytics")}}Weekly, monthly and yearly attendance from the recorded data{{else}}Monitor time in / time out, lates, undertime, overtime and absences{{/if}}</p>
+  </div>
+</div>
+<nav class="subnav">
+  <a href="/attendance" class="{{active (eq tab "daily")}}">Daily Monitor</a>
+  <a href="/attendance/import" class="{{active (eq tab "import")}}">Import TXT</a>
+  <a href="/attendance/records" class="{{active (eq tab "records")}}">Attendance Records</a>
+  <a href="/attendance/analytics" class="{{active (eq tab "analytics")}}">Analytics</a>
+  <a href="/attendance/summary" class="{{active (eq tab "summary")}}">Monthly Summary</a>
+  <a href="/attendance/overtime" class="{{active (eq tab "overtime")}}">Overtime Review</a>
+  <a href="/attendance/corrections" class="{{active (eq tab "corrections")}}">Correction Requests</a>
+</nav>

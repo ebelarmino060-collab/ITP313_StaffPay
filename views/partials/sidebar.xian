@@ -1,0 +1,28 @@
+<div class="sidebar-overlay" data-sidebar-overlay></div>
+<aside class="sidebar" data-sidebar>
+  <div class="sidebar-brand">
+    {{#if hotel.logoUrl}}<img src="{{hotel.logoUrl}}" alt="" class="brand-logo">{{else}}<span class="brand-mark">S</span>{{/if}}
+    <div>
+      <strong>StaffPay</strong>
+      <span>{{hotel.name}}</span>
+    </div>
+    <button type="button" class="icon-button sidebar-close" data-sidebar-close aria-label="Close menu">{{icon "x"}}</button>
+  </div>
+  <nav class="sidebar-nav">
+    {{#each nav}}
+    <div class="nav-section">
+      <span class="nav-section-title">{{title}}</span>
+      {{#each items}}
+      <a href="{{href}}" class="nav-link {{active active}}">{{icon this.icon}}<span>{{label}}</span></a>
+      {{/each}}
+    </div>
+    {{/each}}
+    <div class="nav-section">
+      <form method="post" action="/logout">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <button type="submit" class="nav-link nav-logout">{{icon "log-out"}}<span>Logout</span></button>
+      </form>
+    </div>
+  </nav>
+  <div class="sidebar-footer"><span>StaffPay v1.0</span><span>XianFire</span></div>
+</aside>

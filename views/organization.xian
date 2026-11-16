@@ -1,0 +1,75 @@
+<div class="page-header">
+  <div>
+    <h1>Departments &amp; Positions</h1>
+    <p class="text-muted">Organise hotel staff into departments and job positions</p>
+  </div>
+  <div class="page-actions">
+    <button type="button" class="btn btn-primary" data-modal="#department-modal" data-title="Add Department" data-action="/organization/departments">{{icon "plus" 16}}<span>Add Department</span></button>
+  </div>
+</div>
+
+<div class="grid grid-3">
+  <section class="card">
+    <div class="card-header"><h3>Departments</h3></div>
+    <div class="card-body no-padding">
+      <ul class="select-list">
+        {{#each departments}}
+        <li class="{{active active}}">
+          <a href="/organization?department={{id}}" class="select-list-link">{{icon "building-2" 16}}<span><strong>{{name}}</strong><small>{{code}} · {{employees_count}} employee(s)</small></span></a>
+          <span class="row-actions">
+            <button type="button" class="btn btn-ghost btn-sm btn-icon" title="Edit" data-modal="#department-modal" data-title="Edit Department" data-action="/organization/departments/{{id}}/update" data-record="{{json this}}">{{icon "pencil" 16}}</button>
+            {{> deleteButton action=(concat "/organization/departments/" id "/delete") message=(concat "Delete the " name " department? This cannot be undone.")}}
+          </span>
+        </li>
+        {{else}}
+        <li class="text-muted" style="padding:16px">No departments yet.</li>
+        {{/each}}
+      </ul>
+    </div>
+  </section>
+
+  <section class="card span-2">
+    <div class="card-header">
+      <div><h3>{{#if selected}}{{selected.name}} – Positions{{else}}Positions{{/if}}</h3>{{#if selected.description}}<p class="text-muted">{{selected.description}}</p>{{/if}}</div>
+      {{#if selected}}<button type="button" class="btn btn-primary btn-sm" data-modal="#position-modal" data-title="Add Position" data-action="/organization/positions" data-defaults="{{json (object department_id=selected.id)}}">{{icon "plus" 14}}<span>Add Position</span></button>{{/if}}
+    </div>
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Position</th><th>Description</th><th class="text-right">Employees</th><th class="text-right">Default Salary</th><th></th></tr></thead>
+        <tbody>
+          {{#each selected.positions}}
+          <tr>
+            <td><strong>{{title}}</strong></td>
+            <td class="cell-wrap">{{default description "—"}}</td>
+            <td class="text-right">{{employees_count}}</td>
+            <td class="text-right">{{money default_salary}}</td>
+            <td class="text-right"><div class="row-actions">
+              <button type="button" class="btn btn-ghost btn-sm btn-icon" title="Edit" data-modal="#position-modal" data-title="Edit Position" data-action="/organization/positions/{{id}}/update" data-record="{{json this}}">{{icon "pencil" 16}}</button>
+              {{> deleteButton action=(concat "/organization/positions/" id "/delete") message=(concat "Delete the position " title "?")}}
+            </div></td>
+          </tr>
+          {{else}}
+          <tr><td colspan="5" class="table-empty">{{icon "inbox" 28}}<div>No positions in this department yet.</div></td></tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+{{#> modal id="department-modal" title="Add Department" action="/organization/departments"}}
+<div class="form-grid">
+  <label class="field"><span class="field-label">Department name <em>*</em></span><input class="input" name="name" required maxlength="100"></label>
+  <label class="field"><span class="field-label">Code <em>*</em></span><input class="input" name="code" required maxlength="20" placeholder="e.g. HK" style="text-transform:uppercase"></label>
+  <label class="field span-2"><span class="field-label">Description</span><textarea class="input" name="description" rows="3"></textarea></label>
+</div>
+{{/modal}}
+
+{{#> modal id="position-modal" title="Add Position" action="/organization/positions"}}
+<div class="form-grid">
+  <label class="field"><span class="field-label">Department <em>*</em></span><select class="input" name="department_id" required>{{options departments placeholder="Select…" value="id" label="name"}}</select></label>
+  <label class="field"><span class="field-label">Position title <em>*</em></span><input class="input" name="title" required maxlength="100"></label>
+  <label class="field"><span class="field-label">Default monthly salary</span><input class="input" type="number" name="default_salary" min="0" step="0.01"></label>
+  <label class="field span-2"><span class="field-label">Description</span><textarea class="input" name="description" rows="3"></textarea></label>
+</div>
+{{/modal}}

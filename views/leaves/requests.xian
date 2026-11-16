@@ -1,0 +1,48 @@
+{{> leaveNav}}
+
+<div class="card">
+  <form class="filter-bar" method="get" action="/leaves" data-autosubmit>
+    <select class="input" name="status">{{options opts.requestStatus filters.status placeholder="All statuses"}}</select>
+    <select class="input" name="leave_type">{{options opts.leaveTypes filters.leave_type placeholder="All leave types"}}</select>
+    <select class="input" name="department_id">{{options departments filters.department_id placeholder="All departments" value="id" label="name"}}</select>
+    <div class="search-input">{{icon "search" 16}}<input class="input" type="search" name="search" value="{{filters.search}}" placeholder="Search employee…"></div>
+  </form>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Employee</th><th>Leave Type</th><th>Dates</th><th class="text-right">Days</th><th>Reason</th><th>Status</th><th>Filed</th><th></th></tr></thead>
+      <tbody>
+        {{#each leaves}}
+        <tr>
+          <td><div class="person-cell">{{avatar employee.full_name employee.photo_url 34}}<div><strong>{{employee.full_name}}</strong><span class="text-muted">{{employee.employee_code}} · {{employee.department.name}}</span></div></div></td>
+          <td>{{leaveType leave_type}}</td>
+          <td>{{date start_date "short"}} – {{date end_date}}</td>
+          <td class="text-right">{{days}}</td>
+          <td class="cell-wrap">{{reason}}</td>
+          <td>{{badge status "request"}}</td>
+          <td><span class="small text-muted">{{datetime createdAt}}</span></td>
+          <td class="text-right">
+            {{#if (eq status "pending")}}
+            <div class="row-actions">
+              <button type="button" class="btn btn-success btn-sm" data-modal="#leave-review-modal" data-action="/leaves/{{id}}/review" data-title="Approve leave request" data-subtitle="{{employee.full_name}} · {{leaveType leave_type}} · {{date start_date "short"}} – {{date end_date}} ({{days}} day(s))" data-defaults="{{json (object status="approved")}}" data-submit="Approve" data-tone="success">{{icon "check" 14}}<span>Approve</span></button>
+              <button type="button" class="btn btn-secondary btn-sm" data-modal="#leave-review-modal" data-action="/leaves/{{id}}/review" data-title="Reject leave request" data-subtitle="{{employee.full_name}} · {{leaveType leave_type}} · {{date start_date "short"}} – {{date end_date}}" data-defaults="{{json (object status="rejected")}}" data-submit="Reject" data-tone="danger">{{icon "x" 14}}<span>Reject</span></button>
+            </div>
+            {{else}}
+            <span class="small text-muted">{{reviewer.name}}{{#if remarks}} · "{{remarks}}"{{/if}}</span>
+            {{/if}}
+          </td>
+        </tr>
+        {{else}}
+        <tr><td colspan="8" class="table-empty">{{icon "inbox" 28}}<div>No leave requests found.</div></td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{> pagination}}
+</div>
+
+{{#> modal id="leave-review-modal" title="Review leave request" action=""}}
+<input type="hidden" name="status" value="approved">
+<p class="text-muted small">Approving a paid leave deducts the days from the employee's leave balance and marks those working days "On Leave". The employee is notified either way.</p>
+<label class="field"><span class="field-label">Remarks (optional)</span><textarea class="input" name="remarks" rows="3"></textarea></label>
+{{/modal}}

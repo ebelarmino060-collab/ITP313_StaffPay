@@ -1,0 +1,18 @@
+{{> attendanceNav}}
+
+<div class="card">
+  <form class="filter-bar" method="get" action="/attendance/summary" data-autosubmit>
+    <input class="input" type="month" name="month" value="{{month}}">
+    <select class="input" name="department_id">{{options departments filters.department_id placeholder="All departments" value="id" label="name"}}</select>
+    <div class="filter-actions">
+      <a class="btn btn-secondary" href="/reports?type=attendance&from={{report.filters.from}}&to={{report.filters.to}}&department_id={{filters.department_id}}">{{icon "chart-column" 16}}<span>Open in Reports</span></a>
+    </div>
+  </form>
+
+  <div class="summary-pills">
+    {{#each report.summary}}<span class="summary-pill tone-navy"><strong>{{value}}</strong> {{label}}</span>{{/each}}
+  </div>
+
+  {{#if report.rows.length}}{{> chart id="summary" config=report.chart height=240}}{{/if}}
+  {{> reportTable}}
+</div>

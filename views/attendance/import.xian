@@ -1,0 +1,145 @@
+{{> attendanceNav}}
+
+<div class="grid grid-3">
+  <section class="card span-2">
+    <div class="card-header"><div><h3>{{icon "upload" 18}} Upload Attendance File</h3><p class="text-muted">Step 1 of 2 – the file is checked and shown as a preview. Nothing is saved until you confirm.</p></div></div>
+    <form method="post" action="/attendance/import" enctype="multipart/form-data" class="form-grid" id="import-form">
+      {{> csrf}}
+      <label class="field span-2"><span class="field-label">Attendance TXT file <em>*</em></span>
+        <input class="input" type="file" name="file" accept=".txt,.csv,.dat,.log,text/plain" required>
+        <span class="field-hint">Exported from the time clock / biometric device. .txt (also .csv, .dat, .log), up to 5 MB.</span></label>
+      <label class="field span-2"><span class="field-label">File format</span>
+        <select class="input" name="format_id">{{#each formats}}<option value="{{id}}" {{#if is_default}}selected{{/if}}>{{name}}</option>{{/each}}</select>
+        <span class="field-hint">Choose the layout your device exports. Add your own under <a href="#formats" class="link">Import formats</a>.</span></label>
+      <label class="checkbox span-2"><input type="checkbox" name="mark_absences" value="1" {{checked defaults.mark_absences}}><span>After importing, mark scheduled employees with no punches as <strong>absent</strong> (approved leave, rest days and holidays are skipped)</span></label>
+      <label class="checkbox span-2"><input type="checkbox" name="approve_overtime" value="1" {{checked defaults.approve_overtime}}><span>Approve overtime from this file automatically (otherwise it waits in Overtime Review)</span></label>
+      <div class="form-actions span-2"><button type="submit" class="btn btn-primary">{{icon "upload" 16}}<span>Upload &amp; Preview</span></button></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h3>Standard TXT format</h3></div>
+    <pre class="code-block">EMPLOYEE_ID,DATE,TIME,STATUS
+EMP001,2026-11-01,08:00:00,IN
+EMP001,2026-11-01,17:30:00,OUT
+EMP002,2026-11-01,08:15:00,IN
+EMP002,2026-11-01,18:00:00,OUT</pre>
+    <ul class="simple-list small">
+      <li><span>Employees are matched by <strong>Employee ID</strong> (EMP001, EMP-001 and emp 1 are the same).</span></li>
+      <li><span>Night shifts: a time-out after midnight closes the previous day's shift.</span></li>
+      <li><span>Several IN/OUT pairs on one day use the earliest IN and latest OUT.</span></li>
+    </ul>
+    <div class="stack mt-2">
+      <a href="/attendance/import/template.txt" class="btn btn-secondary btn-sm">{{icon "file-text" 14}}<span>Blank template (.txt)</span></a>
+      <a href="#download-attendance" class="btn btn-ghost btn-sm">{{icon "download" 14}}<span>Ready-to-import file ↓</span></a>
+    </div>
+  </section>
+</div>
+
+<section class="card" id="download-attendance">
+  <div class="card-header"><div><h3>{{icon "download" 18}} Download an Attendance TXT File</h3><p class="text-muted">Builds a file in the standard format from your real employees, their Employee IDs and their shift schedules. Download it, then upload it above to import it. Use it to test the importer or as a starting point for your device's export.</p></div></div>
+  <form method="get" action="/attendance/import/sample.txt" class="form-grid">
+    <label class="field"><span class="field-label">From</span><input class="input" type="date" name="from" value="{{download.from}}" max="{{download.max}}" required></label>
+    <label class="field"><span class="field-label">To</span><input class="input" type="date" name="to" value="{{download.to}}" max="{{download.max}}" required><span class="field-hint">Up to 31 days; no future dates.</span></label>
+    <label class="checkbox span-2"><input type="checkbox" name="problems" value="1"><span>Add a few bad lines (unknown ID, invalid date, invalid time) to see how errors are reported</span></label>
+    <label class="checkbox span-2"><input type="checkbox" name="all" value="1"><span>Include days that already have attendance (they will preview as <strong>duplicates</strong>)</span></label>
+    <div class="form-actions span-2"><button type="submit" class="btn btn-primary">{{icon "download" 16}}<span>Download TXT</span></button></div>
+  </form>
+</section>
+
+<section class="card">
+  <div class="card-header"><div><h3>Import History</h3><p class="text-muted">Every upload is kept with its original file and results. An identical file cannot be imported twice.</p></div></div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>#</th><th>File</th><th>Uploaded</th><th>Dates</th><th class="text-right">Lines</th><th class="text-right">Employees</th><th class="text-right">Imported</th><th class="text-right">Duplicates</th><th class="text-right">Invalid</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {{#each imports}}
+        <tr>
+          <td>{{id}}</td>
+          <td><a href="/attendance/import/{{id}}" class="link"><strong>{{file_name}}</strong></a><br><small class="text-muted">{{num file_size 0}} bytes</small></td>
+          <td><span class="small">{{datetime createdAt}}<br><span class="text-muted">{{default uploader.name "—"}}</span></span></td>
+          <td>{{#if date_from}}{{date date_from "short"}} – {{date date_to}}{{else}}—{{/if}}</td>
+          <td class="text-right">{{total_lines}}</td>
+          <td class="text-right">{{identified_employees}}{{#if unrecognized_ids}} <span class="text-danger">(+{{unrecognized_ids}} unknown)</span>{{/if}}</td>
+          <td class="text-right"><strong>{{#if (eq status "completed")}}{{records_imported}}{{else}}{{records_ready}} ready{{/if}}</strong></td>
+          <td class="text-right">{{duplicate_count}}</td>
+          <td class="text-right">{{#if invalid_count}}<span class="text-danger">{{invalid_count}}</span>{{else}}0{{/if}}</td>
+          <td>{{#if (eq status "completed")}}{{badge label="Imported" tone="success"}}{{else if (eq status "preview")}}{{badge label="Awaiting review" tone="warning"}}{{else}}{{badge label="Cancelled" tone="muted"}}{{/if}}</td>
+          <td class="text-right"><div class="row-actions">
+            <a href="/attendance/import/{{id}}" class="btn btn-ghost btn-sm btn-icon" title="Open">{{icon "eye" 16}}</a>
+            <a href="/attendance/import/{{id}}/file" class="btn btn-ghost btn-sm btn-icon" title="Download original file">{{icon "download" 16}}</a>
+          </div></td>
+        </tr>
+        {{else}}
+        <tr><td colspan="11" class="table-empty">{{icon "inbox" 28}}<div>No attendance files imported yet.</div></td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+  {{> pagination}}
+</section>
+
+<section class="card" id="formats">
+  <div class="card-header">
+    <div><h3>Import Formats</h3><p class="text-muted">Column mapping for different time-clock / biometric devices.</p></div>
+    <button type="button" class="btn btn-primary btn-sm" data-modal="#format-modal" data-title="Add Import Format" data-action="/attendance/import/formats" data-defaults="{{json blankFormat}}">{{icon "plus" 14}}<span>Add Format</span></button>
+  </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Delimiter</th><th>Columns (ID / Date / Time / Status)</th><th>Dates</th><th>IN / OUT values</th><th></th></tr></thead>
+      <tbody>
+        {{#each formats}}
+        <tr>
+          <td><strong>{{name}}</strong> {{#if is_default}}{{badge label="Default" tone="navy"}}{{/if}}<br><small class="text-muted">{{description}}</small></td>
+          <td>{{titleCase options.delimiter}}</td>
+          <td>{{options.col_employee}} / {{options.col_date}} / {{default options.col_time "in date"}} / {{default options.col_status "none"}}</td>
+          <td>{{options.date_format}}</td>
+          <td class="cell-wrap small">{{#if options.col_status}}IN: {{options.in_values}}<br>OUT: {{options.out_values}}{{else}}first punch = in, last = out{{/if}}</td>
+          <td class="text-right"><div class="row-actions">
+            <button type="button" class="btn btn-ghost btn-sm btn-icon" title="Edit" data-modal="#format-modal" data-title="Edit Import Format" data-action="/attendance/import/formats/{{id}}/update" data-record="{{json form}}">{{icon "pencil" 16}}</button>
+            {{#unless is_default}}{{> deleteButton action=(concat "/attendance/import/formats/" id "/delete") message=(concat "Delete the import format " name "?")}}{{/unless}}
+          </div></td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{{#> modal id="format-modal" title="Import Format" action="/attendance/import/formats" size="lg"}}
+<div class="form-sections">
+  <div class="form-grid">
+    <label class="field"><span class="field-label">Name <em>*</em></span><input class="input" name="name" required maxlength="80"></label>
+    <label class="field"><span class="field-label">Description</span><input class="input" name="description" maxlength="255"></label>
+    <label class="field"><span class="field-label">Delimiter</span>
+      <select class="input" name="delimiter"><option value="auto">Auto-detect</option><option value="comma">Comma ( , )</option><option value="tab">Tab</option><option value="semicolon">Semicolon ( ; )</option><option value="pipe">Pipe ( | )</option><option value="space">Spaces</option></select></label>
+    <label class="field"><span class="field-label">Header row</span>
+      <select class="input" name="header"><option value="auto">Auto-detect</option><option value="yes">First line is a header</option><option value="no">No header</option></select></label>
+  </div>
+  <fieldset>
+    <legend>Columns (number from 1, or the header name)</legend>
+    <div class="form-grid cols-3">
+      <label class="field"><span class="field-label">Employee ID column <em>*</em></span><input class="input" name="col_employee" required placeholder="1 or EMPLOYEE_ID"></label>
+      <label class="field"><span class="field-label">Date column <em>*</em></span><input class="input" name="col_date" required placeholder="2 or DATE"></label>
+      <label class="field"><span class="field-label">Time column</span><input class="input" name="col_time" placeholder="blank = time is inside the date column"></label>
+      <label class="field"><span class="field-label">IN/OUT column</span><input class="input" name="col_status" placeholder="blank = first punch in, last out"></label>
+      <label class="field"><span class="field-label">Date format</span>
+        <select class="input" name="date_format"><option value="YMD">Year first (2026-11-01)</option><option value="MDY">Month first (11/01/2026)</option><option value="DMY">Day first (01/11/2026)</option></select></label>
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>IN / OUT values (comma-separated)</legend>
+    <div class="form-grid">
+      <label class="field"><span class="field-label">Values meaning time-in</span><input class="input" name="in_values" placeholder="IN,I,0,C/IN"></label>
+      <label class="field"><span class="field-label">Values meaning time-out</span><input class="input" name="out_values" placeholder="OUT,O,1,C/OUT"></label>
+    </div>
+  </fieldset>
+  <fieldset>
+    <legend>Test with a few lines (optional)</legend>
+    <textarea class="input" rows="4" data-format-sample placeholder="Paste a few lines from your device file, then press Test"></textarea>
+    <div class="mt-2"><button type="button" class="btn btn-secondary btn-sm" data-format-test>{{icon "check" 14}}<span>Test format</span></button></div>
+    <pre class="code-block mt-2" data-format-result hidden></pre>
+  </fieldset>
+  <label class="checkbox"><input type="checkbox" name="is_default" value="1"><span>Use as the default format</span></label>
+</div>
+{{/modal}}
